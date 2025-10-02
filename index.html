@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapple's Cafe - Orders</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <style>
+        :root {
+    --primary-color: #6a3d11;
+    --secondary-color: #d8c29d;
+    --accent-color: #a44a3f;
+    --bg-color: #f7f2eb;
+    --card-bg: #fff;
+    --text-dark: #333;
+    --text-light: #f4f4f4;
+    --success-color: #4CAF50;
+    --danger-color: #d32f2f;
+    --border-radius: 10px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --sidebar-width: 250px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+}
+
+/* Layout */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+    padding: 20px;
+}
+
+/* Section header */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.section-header h2 {
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* Buttons */
+.action-buttons button,
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+}
+
+.btn-success { background-color: #4CAF50; }
+.btn-info { background-color: #2196F3; }
+.btn-danger { background-color: #d32f2f; }
+
+/* Tables */
+.table-container {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 600px;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px 15px;
+}
+
+thead {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+    background-color: #ddd;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 90%;
+    max-width: 1000px;
+    max-height: 95vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.modal-content input, .modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.modal-actions .save-btn { background-color: var(--success-color); color: white; }
+.modal-actions .cancel-btn { background-color: #ddd; }
+
+/* New Order Layout */
+.new-order-layout {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.menu-items-container {
+    flex: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-right: 10px;
+}
+
+.order-summary-container {
+    flex: 1;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Product Card */
+.product-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 15px;
+    width: calc(33.333% - 10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.product-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.product-card p {
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.product-quantity-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: var(--success-color);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transform: scale(0);
+    transform-origin: top right;
+    transition: transform 0.3s ease;
+}
+
+.product-quantity-badge.visible {
+    transform: scale(1);
+}
+
+/* Summary Items */
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+#current-order-list,
+#details-order-items {
+    flex-grow: 1;
+}
+
+#new-order-summary {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid var(--primary-color);
+}
+
+#new-order-summary p {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: right;
+    color: var(--primary-color);
+}
+
+/* Fixed Bottom Actions for Mobile */
+.fixed-bottom-actions {
+    display: none;
+}
+
+#orders-section {
+    flex-grow: 1;
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    .main-content {
+        padding: 0;
+    }
+
+    #orders-section {
+        margin: 0;
+    }
+
+    .new-order-layout {
+        flex-direction: column;
+        overflow-y: visible;
+        padding-bottom: 60px;
+    }
+
+    .product-card {
+        width: calc(50% - 10px);
+    }
+
+    .order-summary-container {
+        position: static;
+    }
+
+    .menu-items-container {
+        flex: none;
+        overflow-y: visible;
+        max-height: none;
+    }
+
+    #order-details-modal .modal-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .fixed-bottom-actions {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--card-bg);
+        padding: 15px 20px;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        z-index: 10;
+    }
+
+    .fixed-bottom-actions .total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .fixed-bottom-actions button {
+        flex: 1;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filter-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .filter-controls input[type="text"],
+    .filter-controls input[type="date"] {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-card {
+        width: 100%;
+    }
+}
+
+/* Invoice & Quantity Controls */
+.invoice-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.invoice-item:last-child {
+    border-bottom: none;
+}
+
+.invoice-item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.invoice-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.invoice-item-actions button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.invoice-item-actions button.remove-btn {
+    background-color: var(--danger-color);
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 5px 10px;
+}
+
+.invoice-item-actions button.quantity-btn {
+    background-color: #5a350f;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.invoice-item-actions .quantity {
+    font-weight: 600;
+    min-width: 25px;
+    text-align: center;
+}
+
+/* Modal Details */
+.modal-details-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.modal-details-content .details-section {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-details-content .details-section h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.modal-details-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.modal-details-content ul li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-details-content .total {
+    text-align: right;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
+/* Popup Message */
+.popup-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: 15px 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    z-index: 1001;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.popup-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Loader */
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(247, 242, 235, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loader.active {
+    display: flex;
+}
+
+/* Coffee Cup Animation */
+.coffee-cup {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.coffee-liquid {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 0;
+    background-color: var(--primary-color);
+    animation: fill-up 1.5s ease-in-out infinite;
+}
+
+@keyframes fill-up {
+    0% { height: 0%; }
+    50% { height: 100%; }
+    100% { height: 0%; }
+}
+
+/* Filter Controls */
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-controls input[type="text"],
+.filter-controls input[type="date"] {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+/* Invoice Modal */
+#invoice-modal .modal-content {
+    max-width: 600px;
+    padding: 20px;
+}
+
+.invoice-details p {
+    padding: 5px 0;
+}
+
+.payment-methods {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.payment-methods button {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid var(--primary-color);
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.payment-methods button.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.payment-split-section {
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: var(--border-radius);
+    margin-top: 15px;
+    display: none;
+}
+
+.payment-split-section label {
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.payment-split-section input {
+    margin-bottom: 10px;
+}
+
+#invoice-modal .modal-actions {
+    justify-content: center;
+    border-top: none;
+    padding-top: 0;
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden !important;
+        background: none !important;
+    }
+
+    #print-area, #print-area * {
+        visibility: visible !important;
+    }
+
+    #print-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 80mm; /* thermal paper width */
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #000;
+        padding: 5px;
+        box-sizing: border-box;
+    }
+
+    #print-area pre {
+        white-space: pre;
+        margin: 0;
+    }
+}
+
+        /* NEW STYLE: Login Role Selector Tabs */
+        #login-role-selector button {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            background-color: #ddd;
+            color: var(--text-dark);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #login-role-selector button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="loader" id="loader">
+        <div class="coffee-cup">
+            <div class="coffee-liquid"></div>
+        </div>
+    </div>
+
+  <div class="main-content" style="flex: 1; display: flex; flex-direction: column;">
+  <div id="orders-section" class="content-section">
+    <div class="section-header">
+      <h2>Orders Management</h2>
+
+      <div id="order-counts" style="display: flex; gap: 20px; font-size: 1.1rem;">
+        <p>Pending: <span id="pending-count" style="font-weight: 700; color: orange;">0</span></p>
+        <p>Send: <span id="send-count" style="font-weight: 700; color: blue;">0</span></p>
+      </div>
+      <div class="filter-controls">
+        <input type="text" id="search-input" placeholder="Search orders...">
+        <input type="date" id="date-input">
+      </div>
+
+      <div id="admin-info-container" style="display: flex; align-items: center; gap: 10px;">
+        <span id="user-name-display" style="font-weight: 600;"></span>
+        <div class="action-buttons">
+          <button class="btn btn-danger" id="logout-btn" style="display: none;">Logout</button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn btn-info" id="viewOrdersBtn" style="display: none;">View</button>
+        <button class="btn btn-success" id="newOrderBtn">New Order</button>
+      </div>
+    </div>
+
+
+      <div class="table-container">
+        <table id="orders-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Emp ID</th>
+              <th>Emp Name</th>
+              <th>Table No</th>
+              <th>Customer Name</th>
+              <th>Total Amount (₹)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="new-order-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="new-order-close-btn">&times;</span>
+            <h3>New Order</h3>
+            <form id="new-order-form">
+                <div class="new-order-layout">
+                    <div class="menu-items-container" id="new-order-menu-items">
+                        </div>
+
+                    <div class="order-summary-container">
+                        <h4>Order Details</h4>
+                        <input type="hidden" id="order-id">
+                        <label for="emp-id">Emp ID:</label>
+                        <input type="text" id="emp-id" required>
+                        <label for="table-no">Table No:</label>
+                        <input type="text" id="table-no" required>
+                        <label for="customer-name">Customer Name (Optional):</label>
+                        <input type="text" id="customer-name">
+
+                        <hr>
+                        <h4>Current Order</h4>
+                        <div id="current-order-list">
+                            </div>
+
+                        <div id="new-order-summary">
+                            <p>Total: ₹<span id="new-order-total">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" id="new-order-cancel-btn">Cancel</button>
+                    <button type="submit" class="save-btn" id="place-order-btn">Place Order</button>
+                </div>
+            </form>
+            <div class="fixed-bottom-actions">
+                <div class="total">Total: ₹<span id="new-order-total-mobile">0.00</span></div>
+                <button type="submit" form="new-order-form" class="save-btn">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Order Details</h3>
+            <div class="modal-details-content">
+                <div class="details-section">
+                    <p><strong>Order ID:</strong> <span id="details-order-id"></span></p>
+                    <p><strong>Table No:</strong> <span id="details-table-no"></span></p>
+                    <p><strong>Customer Name:</strong> <span id="details-customer-name"></span></p>
+                    <p><strong>Total Amount:</strong> ₹<span id="details-total-amount"></span></p>
+                    <p><strong>Status:</strong> <span id="details-order-status"></span></p>
+                </div>
+                <div class="details-section">
+                    <h4>Items</h4>
+                    <ul id="details-order-items"></ul>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-info" id="edit-order-btn">Edit</button>
+                <button type="button" class="btn btn-info" id="send-order-btn">Send</button>
+                <button type="button" class="btn btn-danger" id="cancel-order-btn">Cancel Order</button>
+                <button type="button" class="btn btn-success" id="complete-order-btn">Complete Order</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="invoice-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Invoice & Payment</h3>
+
+            <div class="invoice-details">
+                <p><strong>Order ID:</strong> <span id="invoice-order-id"></span></p>
+                <p><strong>Total Payable:</strong> ₹<span id="invoice-total-amount"></span></p>
+            </div>
+
+            <hr style="margin: 15px 0;">
+
+            <h4>Select Payment Mode</h4>
+            <div class="payment-methods">
+                <button type="button" id="pay-cash-btn" data-method="Cash">Cash</button>
+                <button type="button" id="pay-online-btn" data-method="Online">Online</button>
+                <button type="button" id="pay-split-btn" data-method="Split">Split</button>
+            </div>
+
+            <div class="payment-split-section" id="split-payment-section">
+                <label for="cash-split-amount">Cash Amount (₹):</label>
+                <input type="number" id="cash-split-amount" step="0.01" min="0">
+
+                <label for="online-split-amount">Online Amount (₹):</label>
+                <input type="number" id="online-split-amount" step="0.01" min="0" readonly>
+
+                <p style="margin-top: 10px; font-weight: 600;">Remaining: ₹<span id="split-remaining">0.00</span></p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-success" id="finalise-payment-btn" disabled>Finalise Payment</button>
+            </div>
+        </div>
+    </div>
+    <div id="popup-message-container" class="popup-message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const popupMessageContainer = document.getElementById('popup-message-container');
+            const loader = document.getElementById('loader');
+
+            // Invoice Modal Elements
+            const invoiceModal = document.getElementById('invoice-modal');
+            const invoiceOrderIdSpan = document.getElementById('invoice-order-id');
+            const invoiceTotalAmountSpan = document.getElementById('invoice-total-amount');
+            const payCashBtn = document.getElementById('pay-cash-btn');
+            const payOnlineBtn = document.getElementById('pay-online-btn');
+            const paySplitBtn = document.getElementById('pay-split-btn');
+            const splitPaymentSection = document.getElementById('split-payment-section');
+            const cashSplitAmountInput = document.getElementById('cash-split-amount');
+            const onlineSplitAmountInput = document.getElementById('online-split-amount');
+            const splitRemainingSpan = document.getElementById('split-remaining');
+            const finalisePaymentBtn = document.getElementById('finalise-payment-btn');
+
+            // Filter elements
+            const searchInput = document.getElementById('search-input');
+            const dateInput = document.getElementById('date-input');
+            
+            // New Order Input Field
+            const empIdInput = document.getElementById('emp-id');
+            
+            // View Orders Button
+            const viewOrdersBtn = document.getElementById('viewOrdersBtn');
+
+            // START OF NEW CODE: Count Elements
+            const pendingCountSpan = document.getElementById('pending-count');
+            const sendCountSpan = document.getElementById('send-count');
+            // END OF NEW CODE: Count Elements
+
+            // NEW/MODIFIED LOGIN/LOGOUT VARIABLES
+            const loginModal = document.getElementById('login-modal');
+            const adminLoginView = document.getElementById('admin-login-view');
+            const employeeLoginView = document.getElementById('employee-login-view');
+            const showAdminBtn = document.getElementById('show-admin-login');
+            const showEmployeeBtn = document.getElementById('show-employee-login');
+            const adminLoginForm = document.getElementById('admin-login-form');
+            const employeeLoginForm = document.getElementById('employee-login-form');
+            const loginEmpIdInput = document.getElementById('login-emp-id');
+            const loginDobInput = document.getElementById('login-dob');
+
+            const userNameDisplay = document.getElementById('user-name-display');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            let loggedInRole = null; // 'Admin' or 'Employee'
+            let loggedInUserId = null; // Admin email or Employee ID
+            let loggedInUserName = null; // Admin or Employee name
+
+            let currentOrderToComplete = null;
+            let selectedPaymentMethod = null;
+            let totalOrderAmount = 0;
+
+            const showLoader = () => { loader.classList.add('active'); };
+            const hideLoader = () => { setTimeout(() => { loader.classList.remove('active'); }, 500); };
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyABDWSr0M_A9sVw351QLm_MMfUDnLzW5Ik",
+                authDomain: "mapples-8da36.firebaseapp.com",
+                databaseURL: "https://mapples-8da36-default-rtdb.firebaseio.com",
+                projectId: "mapples-8da36",
+                storageBucket: "mapples-8da36.appspot.com",
+                messagingSenderId: "673045371502",
+                appId: "1:673045371502:web:095d625ab71b1fc7ada47f",
+                measurementId: "G-Q9Q5YZD7J3"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+
+            let products = [];
+            let orders = [];
+            let employees = [];
+            let currentOrder = [];
+            let currentOrderId = null;
+
+            const ordersTableBody = document.querySelector('#orders-table tbody');
+            const newOrderBtn = document.getElementById('newOrderBtn');
+            const newOrderModal = document.getElementById('new-order-modal');
+            const newOrderMenuItems = document.getElementById('new-order-menu-items');
+            const currentOrderList = document.getElementById('current-order-list');
+            const newOrderTotalSpan = document.getElementById('new-order-total');
+            const newOrderTotalMobileSpan = document.getElementById('new-order-total-mobile');
+            const newOrderForm = document.getElementById('new-order-form');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            const orderDetailsModal = document.getElementById('order-details-modal');
+
+            const showPopupMessage = (message) => {
+                popupMessageContainer.textContent = message;
+                popupMessageContainer.classList.add('show');
+                setTimeout(() => {
+                    popupMessageContainer.classList.remove('show');
+                }, 3000);
+            };
+
+            const generateOrderId = async () => {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const todayKey = `${dd}${mm}`;
+
+                const counterRef = database.ref(`dailyOrderCounters/${todayKey}`);
+                let counter = 0;
+                await counterRef.transaction((currentValue) => {
+                    return (currentValue || 0) + 1;
+                }, (error, committed, snapshot) => {
+                    if (error) {
+                        console.error("Order counter transaction failed: ", error);
+                    } else if (committed) {
+                        counter = snapshot.val();
+                    }
+                });
+
+                const nnn = String(counter).padStart(3, '0');
+                return `${todayKey}${nnn}`;
+            };
+
+            const generateInvoiceNumber = async (dateObj) => {
+                const yyyy = String(dateObj.getFullYear());
+                const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const todayKey = `${yyyy}${mm}`; // YYYYMM
+
+                // Use transaction to ensure unique invoice number
+                const counterRef = database.ref(`monthlyInvoiceCounters/${todayKey}`);
+                let counter = 0;
+                await counterRef.transaction((currentValue) => {
+                    return (currentValue || 0) + 1;
+                }, (error, committed, snapshot) => {
+                    if (error) {
+                        console.error("Invoice counter transaction failed: ", error);
+                    } else if (committed) {
+                        counter = snapshot.val();
+                    }
+                });
+
+                const nnnn = String(counter).padStart(4, '0');
+                return `${yyyy}${mm}${nnnn}`;
+            };
+
+		document.getElementById("viewOrdersBtn").addEventListener("click", () => {
+  window.location.href = "index.html";  // redirects to dashboard
+});
+
+
+            // Common Modal Logic
+            document.querySelectorAll('.modal .close-btn, #new-order-cancel-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const modal = btn.closest('.modal');
+                    modal.style.display = 'none';
+                });
+            });
+
+            // Orders Logic
+            newOrderBtn.addEventListener('click', () => {
+                // --- MODIFIED LOGIC START ---
+                // 1. Reset other fields
+                document.getElementById('table-no').value = '';
+                document.getElementById('customer-name').value = '';
+                currentOrder = [];
+                currentOrderId = null;
+                placeOrderBtn.textContent = 'Place Order';
+
+                // 2. Auto-fill Emp ID and set read-only based on login role
+                if (loggedInRole === 'Employee' && loggedInUserId) {
+                    empIdInput.value = loggedInUserId;
+                    empIdInput.readOnly = true; // Employee cannot change their ID
+                } else if (loggedInRole === 'Admin') {
+                    empIdInput.value = 'Admin';
+                    empIdInput.readOnly = false; // Admin can change/enter another EmpID
+                } else {
+                    // Fallback if somehow not logged in
+                    empIdInput.value = '';
+                    empIdInput.readOnly = false;
+                }
+                // --- MODIFIED LOGIC END ---
+
+                renderNewOrderMenuItems();
+                renderCurrentOrderList();
+                renderNewOrderTotal();
+                newOrderModal.style.display = 'flex';
+            });
+
+            const renderNewOrderMenuItems = () => {
+                newOrderMenuItems.innerHTML = '';
+                products.forEach(product => {
+                    const card = document.createElement('div');
+                    card.classList.add('product-card');
+                    card.dataset.id = product.id;
+                    card.innerHTML = `
+                        <h4>${product.name}</h4>
+                        <p>₹${product.price.toFixed(2)}</p>
+                        <span class="product-quantity-badge" id="qty-card-${product.id}">0</span>
+                    `;
+                    newOrderMenuItems.appendChild(card);
+                });
+            };
+
+            const renderCurrentOrderList = () => {
+                currentOrderList.innerHTML = '';
+                currentOrder.forEach(item => {
+                    const listItem = document.createElement('div');
+                    listItem.classList.add('invoice-item');
+                    listItem.dataset.id = item.id;
+                    listItem.innerHTML = `
+                        <div class="invoice-item-info">
+                            <span>${item.name}</span>
+                            <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                        <div class="invoice-item-actions">
+                            <button type="button" class="quantity-btn decrease-quantity-btn" data-id="${item.id}">-</button>
+                            <span class="quantity">${item.quantity}</span>
+                            <button type="button" class="quantity-btn increase-quantity-btn" data-id="${item.id}">+</button>
+                            <button type="button" class="remove-btn" data-id="${item.id}">&times;</button>
+                        </div>
+                    `;
+                    currentOrderList.appendChild(listItem);
+                });
+
+                // Event listeners for quantity controls
+                document.querySelectorAll('.increase-quantity-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const itemId = event.target.dataset.id;
+                        const itemToUpdate = currentOrder.find(item => item.id === itemId);
+                        if (itemToUpdate) {
+                            itemToUpdate.quantity++;
+                            renderCurrentOrderList();
+                            renderNewOrderTotal();
+                            const quantityBadge = document.getElementById(`qty-card-${itemId}`);
+                            if (quantityBadge) {
+                                quantityBadge.textContent = itemToUpdate.quantity;
+                                quantityBadge.classList.add('visible');
+                            }
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.decrease-quantity-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const itemId = event.target.dataset.id;
+                        const itemToUpdate = currentOrder.find(item => item.id === itemId);
+                        if (itemToUpdate && itemToUpdate.quantity > 1) {
+                            itemToUpdate.quantity--;
+                            renderCurrentOrderList();
+                            renderNewOrderTotal();
+                            const quantityBadge = document.getElementById(`qty-card-${itemId}`);
+                            if (quantityBadge) {
+                                quantityBadge.textContent = itemToUpdate.quantity;
+                            }
+                        } else if (itemToUpdate && itemToUpdate.quantity === 1) {
+                            const itemIndex = currentOrder.findIndex(item => item.id === itemId);
+                            currentOrder.splice(itemIndex, 1);
+                            renderCurrentOrderList();
+                            renderNewOrderTotal();
+                            const quantityBadge = document.getElementById(`qty-card-${itemId}`);
+                            if (quantityBadge) {
+                                quantityBadge.textContent = '0';
+                                quantityBadge.classList.remove('visible');
+                            }
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.remove-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const itemId = event.target.dataset.id;
+                        const itemIndex = currentOrder.findIndex(item => item.id === itemId);
+                        if (itemIndex > -1) {
+                            currentOrder.splice(itemIndex, 1);
+                            renderCurrentOrderList();
+                            renderNewOrderTotal();
+                            const quantityBadge = document.getElementById(`qty-card-${itemId}`);
+                            if (quantityBadge) {
+                                quantityBadge.textContent = '0';
+                                quantityBadge.classList.remove('visible');
+                            }
+                        }
+                    });
+                });
+            };
+
+            const renderNewOrderTotal = () => {
+                const total = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const totalString = total.toFixed(2);
+                newOrderTotalSpan.textContent = totalString;
+                newOrderTotalMobileSpan.textContent = totalString;
+            };
+
+            newOrderMenuItems.addEventListener('click', (e) => {
+                const card = e.target.closest('.product-card');
+                if (!card) return;
+
+                const id = card.dataset.id;
+                const product = products.find(p => p.id === id);
+                if (!product) return;
+
+                let existingItem = currentOrder.find(item => item.id === id);
+
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    existingItem = { ...product, quantity: 1 };
+                    currentOrder.push(existingItem);
+                }
+
+                const quantityBadge = document.getElementById(`qty-card-${id}`);
+                if (quantityBadge) {
+                    quantityBadge.textContent = existingItem.quantity;
+                    quantityBadge.classList.add('visible');
+                }
+
+                renderCurrentOrderList();
+                renderNewOrderTotal();
+            });
+
+            newOrderForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                showLoader();
+                const empId = document.getElementById('emp-id').value;
+                const tableNo = document.getElementById('table-no').value;
+                const customerName = document.getElementById('customer-name').value;
+                const totalAmount = parseFloat(newOrderTotalSpan.textContent);
+
+                const employee = employees.find(emp => emp.id === empId);
+                const empName = employee ? employee.name : (empId === 'Admin' ? 'Admin' : 'N/A');
+
+                if (!empId) {
+                    hideLoader();
+                    showPopupMessage('Employee ID is required!');
+                    return;
+                }
+
+                if (currentOrder.length === 0) {
+                    hideLoader();
+                    showPopupMessage('Order cannot be empty!');
+                    return;
+                }
+
+                try {
+                    let orderRef;
+                    let displayId;
+
+                    if (currentOrderId) {
+                        orderRef = database.ref('orders/' + currentOrderId);
+                        const snapshot = await orderRef.once('value');
+                        displayId = snapshot.val().displayId;
+                    } else {
+                        const newOrderIdKey = database.ref('orders').push().key;
+                        orderRef = database.ref('orders/' + newOrderIdKey);
+                        currentOrderId = newOrderIdKey;
+                        displayId = await generateOrderId();
+                    }
+
+
+                    const orderData = {
+                        orderId: currentOrderId,
+                        displayId: displayId,
+                        empId,
+                        empName,
+                        tableNo,
+                        customerName,
+                        // Ensure each item has its total calculated
+                        items: currentOrder.map(item => ({...item, total: parseFloat((item.price * item.quantity).toFixed(2))})),
+                        totalAmount: parseFloat(totalAmount.toFixed(2)),
+                        status: currentOrderId ? 'Pending' : 'Pending',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    await orderRef.set(orderData);
+                    showPopupMessage(currentOrderId ? 'Order updated successfully!' : 'Order placed successfully!');
+                    newOrderModal.style.display = 'none';
+                } catch (error) {
+                    console.error("Error placing/updating order:", error);
+                    showPopupMessage('Failed to place/update order.');
+                } finally {
+                    hideLoader();
+                }
+            });
+
+            const renderOrdersTable = (searchText = '', filterDate = '') => {
+                ordersTableBody.innerHTML = '';
+
+                const filteredOrders = orders.filter(order => {
+                    const searchLower = searchText.toLowerCase();
+                    const orderDate = new Date(order.timestamp).toISOString().split('T')[0];
+                    const matchesSearch = searchText === '' ||
+                        (order.displayId && order.displayId.toLowerCase().includes(searchLower)) ||
+                        (order.empId && order.empId.toLowerCase().includes(searchLower)) ||
+                        (order.empName && order.empName.toLowerCase().includes(searchLower)) ||
+                        (order.customerName && order.customerName.toLowerCase().includes(searchLower)) ||
+                        (order.tableNo && order.tableNo.toLowerCase().includes(searchLower));
+
+                    const matchesDate = filterDate === '' || orderDate === filterDate;
+
+                    return matchesSearch && matchesDate;
+                });
+
+                filteredOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                filteredOrders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${order.displayId || 'N/A'}</td>
+                        <td>${order.empId || 'N/A'}</td>
+                        <td>${order.empName || 'N/A'}</td>
+                        <td>${order.tableNo}</td>
+                        <td>${order.customerName || 'N/A'}</td>
+                        <td>₹${order.totalAmount.toFixed(2)}</td>
+                        <td><span id="status-${order.orderId}">${order.status}</span></td>
+                        <td>
+                            <button class="btn btn-info view-order-details-btn" data-id="${order.orderId}">View</button>
+                        </td>
+                    `;
+                    ordersTableBody.appendChild(row);
+                });
+            };
+
+            ordersTableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('view-order-details-btn')) {
+                    const id = e.target.dataset.id;
+                    const order = orders.find(o => o.orderId === id);
+                    if (order) {
+                        document.getElementById('details-order-id').textContent = order.displayId || 'N/A';
+                        document.getElementById('details-table-no').textContent = order.tableNo;
+                        document.getElementById('details-customer-name').textContent = order.customerName || 'N/A';
+                        document.getElementById('details-total-amount').textContent = order.totalAmount.toFixed(2);
+                        document.getElementById('details-order-status').textContent = order.status;
+                        const itemsList = document.getElementById('details-order-items');
+                        itemsList.innerHTML = '';
+                        order.items.forEach(item => {
+                            const itemTotal = item.total || (item.price * item.quantity);
+                            const li = document.createElement('li');
+                            li.innerHTML = `<span>${item.name} x${item.quantity}</span><span>₹${itemTotal.toFixed(2)}</span>`;
+                            itemsList.appendChild(li);
+                        });
+
+                        const completeBtn = document.getElementById('complete-order-btn');
+                        const cancelBtn = document.getElementById('cancel-order-btn');
+                        const editBtn = document.getElementById('edit-order-btn');
+                        const sendBtn = document.getElementById('send-order-btn');
+
+                        // Show/Hide buttons based on status
+                        const isPendingOrSend = order.status === 'Pending' || order.status === 'Send';
+                        completeBtn.style.display = isPendingOrSend ? 'inline-block' : 'none';
+                        cancelBtn.style.display = isPendingOrSend ? 'inline-block' : 'none';
+                        editBtn.style.display = isPendingOrSend ? 'inline-block' : 'none';
+                        sendBtn.style.display = isPendingOrSend ? 'inline-block' : 'none';
+
+                        editBtn.onclick = () => {
+                            currentOrderId = order.orderId;
+                            // Deep copy items array for editing
+                            currentOrder = order.items.map(item => ({...item, total: undefined}));
+                            document.getElementById('emp-id').value = order.empId;
+                            document.getElementById('table-no').value = order.tableNo;
+                            document.getElementById('customer-name').value = order.customerName;
+                            placeOrderBtn.textContent = 'Update Order';
+
+                            // Set read-only status correctly on edit
+                            if (loggedInRole === 'Employee' && order.empId === loggedInUserId) {
+                                empIdInput.readOnly = true;
+                            } else {
+                                empIdInput.readOnly = false;
+                            }
+                            
+                            renderNewOrderMenuItems();
+                            renderCurrentOrderList();
+                            renderNewOrderTotal();
+                            orderDetailsModal.style.display = 'none';
+                            newOrderModal.style.display = 'flex';
+
+                            currentOrder.forEach(item => {
+                                const quantityBadge = document.getElementById(`qty-card-${item.id}`);
+                                if (quantityBadge) {
+                                    quantityBadge.textContent = item.quantity;
+                                    quantityBadge.classList.add('visible');
+                                }
+                            });
+                        };
+
+                       sendBtn.onclick = async () => {
+    try {
+        await database.ref('orders/' + id).update({ status: 'Send' });
+
+        const kitchenInvoiceRef = database.ref('kitchenInvoices').push();
+        const now = new Date();
+
+        const kitchenInvoiceData = {
+            id: kitchenInvoiceRef.key,
+            orderId: order.orderId,
+            displayId: order.displayId,
+            empId: order.empId,
+            empName: order.empName,
+            tableNo: order.tableNo,
+            customerName: order.customerName,
+            items: order.items,
+            totalAmount: order.totalAmount,
+            status: "In Kitchen",
+            timestamp: now.toISOString()
+        };
+
+        await kitchenInvoiceRef.set(kitchenInvoiceData);
+
+        showPopupMessage('Order sent to Kitchen.');
+        orderDetailsModal.style.display = 'none';
+
+        // 🔹 Print Kitchen Copy
+        printKitchenInvoice(kitchenInvoiceData);
+
+    } catch (error) {
+        console.error("Error sending to kitchen:", error);
+        showPopupMessage('Failed to send order to kitchen.');
+    }
+};
+
+                        cancelBtn.onclick = async () => {
+                            await database.ref('orders/' + id).update({ status: 'Cancelled' });
+                            showPopupMessage('Order cancelled.');
+                            orderDetailsModal.style.display = 'none';
+                        };
+
+                        completeBtn.onclick = () => {
+                            currentOrderToComplete = order;
+                            orderDetailsModal.style.display = 'none';
+                            openInvoiceModal(currentOrderToComplete);
+                        };
+
+                        orderDetailsModal.style.display = 'flex';
+                    }
+                }
+            });
+
+            // --- Invoice Modal Logic ---
+
+            const openInvoiceModal = (order) => {
+                selectedPaymentMethod = null;
+                totalOrderAmount = order.totalAmount;
+                cashSplitAmountInput.value = '';
+                onlineSplitAmountInput.value = '';
+                splitPaymentSection.style.display = 'none';
+                finalisePaymentBtn.disabled = true;
+
+                document.querySelectorAll('.payment-methods button').forEach(btn => btn.classList.remove('active'));
+
+                invoiceOrderIdSpan.textContent = order.displayId || 'N/A';
+                invoiceTotalAmountSpan.textContent = totalOrderAmount.toFixed(2);
+
+                invoiceModal.style.display = 'flex';
+            };
+
+            const updateSplitAmounts = () => {
+                const cashInput = parseFloat(cashSplitAmountInput.value);
+                const cashAmount = isNaN(cashInput) ? 0 : cashInput;
+
+                const remaining = totalOrderAmount - cashAmount;
+
+                if (remaining >= 0) {
+                    onlineSplitAmountInput.value = remaining.toFixed(2);
+                    splitRemainingSpan.textContent = "0.00";
+                    finalisePaymentBtn.disabled = false;
+                } else {
+                    onlineSplitAmountInput.value = "0.00";
+                    splitRemainingSpan.textContent = Math.abs(remaining).toFixed(2);
+                    finalisePaymentBtn.disabled = true;
+                }
+            };
+
+            // Payment method selection handler
+            document.querySelectorAll('.payment-methods button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    document.querySelectorAll('.payment-methods button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    selectedPaymentMethod = e.target.dataset.method;
+                    splitPaymentSection.style.display = 'none';
+
+                    if (selectedPaymentMethod === 'Split') {
+    splitPaymentSection.style.display = 'block';
+    cashSplitAmountInput.value = '';     // start empty
+    onlineSplitAmountInput.value = '';   // start empty
+    splitRemainingSpan.textContent = totalOrderAmount.toFixed(2);
+    finalisePaymentBtn.disabled = true;
+} else if (selectedPaymentMethod === 'Cash') {
+    // Show total directly in Cash
+    splitPaymentSection.style.display = 'block';
+    cashSplitAmountInput.value = totalOrderAmount.toFixed(2);
+    onlineSplitAmountInput.value = '0.00';
+    splitRemainingSpan.textContent = "0.00";
+    finalisePaymentBtn.disabled = false;
+} else if (selectedPaymentMethod === 'Online') {
+    // Show total directly in Online
+    splitPaymentSection.style.display = 'block';
+    cashSplitAmountInput.value = '0.00';
+    onlineSplitAmountInput.value = totalOrderAmount.toFixed(2);
+    splitRemainingSpan.textContent = "0.00";
+    finalisePaymentBtn.disabled = false;
+}
+
+                });
+            });
+
+            // Split amount input change handler
+            cashSplitAmountInput.addEventListener('input', updateSplitAmounts);
+
+            // Finalise Payment Button Handler (Only for Split)
+            finalisePaymentBtn.addEventListener('click', () => {
+                if (selectedPaymentMethod === 'Split' && finalisePaymentBtn.disabled) {
+                    showPopupMessage('Split amounts do not match the total order amount.');
+                    return;
+                }
+                 if (!selectedPaymentMethod) {
+                     showPopupMessage('Please select a payment method.');
+                     return;
+                 }
+
+
+                let cashAmount = 0;
+                let onlineAmount = 0;
+
+                if (selectedPaymentMethod === 'Split') {
+                    cashAmount = parseFloat(cashSplitAmountInput.value);
+                    onlineAmount = parseFloat(onlineSplitAmountInput.value);
+                } else if (selectedPaymentMethod === 'Cash') {
+                    cashAmount = totalOrderAmount;
+                } else if (selectedPaymentMethod === 'Online') {
+                    onlineAmount = totalOrderAmount;
+                }
+
+                invoiceModal.style.display = 'none';
+                handlePaymentAndInvoice(currentOrderToComplete, selectedPaymentMethod, cashAmount, onlineAmount);
+            });
+
+            const generateReceiptText = (invoice) => {
+    const WIDTH = 42; // characters per line (for 80mm paper)
+
+    const centerText = (text) => {
+        const pad = Math.floor((WIDTH - text.length) / 2);
+        return ' '.repeat(Math.max(0, pad)) + text;
+    };
+
+    const line = '-'.repeat(WIDTH);
+
+    let receipt = '';
+    receipt += centerText("MAPPLE'S CAFE") + '\n';
+    receipt += centerText("A LITTLE TEA, LOT OF LOVE") + '\n';
+    receipt += line + '\n';
+
+    const dateObj = new Date(invoice.date);
+    const dateStr = dateObj.toLocaleDateString('en-GB');
+    const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    receipt += `Invoice No : ${invoice.invoiceNumber}\n`;
+    receipt += `Date/Time  : ${dateStr} ${timeStr}\n`;
+    receipt += `Table No   : ${invoice.tableNo || 'N/A'}\n`;
+    receipt += `Served By  : ${invoice.empName || 'N/A'}\n`;
+    receipt += line + '\n';
+
+    // Table header with strict spacing
+    receipt += `Item                Qty   Price   Total\n`;
+    receipt += line + '\n';
+
+    // Format each item in aligned columns
+    invoice.items.forEach(item => {
+        const name = item.name.padEnd(18, ' ').substring(0, 18);
+        const qty = String(item.quantity).padStart(3, ' ');
+        const price = item.price.toFixed(2).padStart(7, ' ');
+        const total = (item.total || item.price * item.quantity).toFixed(2).padStart(7, ' ');
+        receipt += `${name}${qty}${price}${total}\n`;
+    });
+
+    receipt += line + '\n';
+
+    // Right-align the total
+    const totalLine = `TOTAL AMOUNT: ₹${invoice.total.toFixed(2)}`;
+    receipt += totalLine.padStart(WIDTH) + '\n';
+
+    receipt += `Payment Mode : ${invoice.paymentMode}\n`;
+    receipt += line + '\n';
+    receipt += centerText("THANK YOU! COME AGAIN!") + '\n';
+
+    return receipt;
+};
+
+
+
+const printKitchenInvoice = (kitchenInvoice) => {
+    const WIDTH = 42; // characters per line
+
+    const centerText = (text) => {
+        const pad = Math.floor((WIDTH - text.length) / 2);
+        return ' '.repeat(Math.max(0, pad)) + text;
+    };
+
+    const line = '-'.repeat(WIDTH);
+
+    let receipt = '';
+    receipt += centerText("MAPPLE'S CAFE") + '\n';
+    receipt += centerText("KITCHEN ORDER") + '\n';
+    receipt += line + '\n';
+
+    // Header info
+    const dateObj = new Date(kitchenInvoice.timestamp);
+    const dateStr = dateObj.toLocaleDateString('en-GB');
+    const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    receipt += `Order ID : ${kitchenInvoice.displayId}\n`;
+    receipt += `Table No : ${kitchenInvoice.tableNo || 'N/A'}\n`;
+    receipt += `Time     : ${dateStr} ${timeStr}\n`;
+    receipt += line + '\n';
+
+    // Table header
+    receipt += `Item                Qty   Total\n`;
+    receipt += line + '\n';
+
+    // List items
+    kitchenInvoice.items.forEach(item => {
+        const name = item.name.padEnd(18, ' ').substring(0, 18);
+        const qty = String(item.quantity).padStart(3, ' ');
+        const total = (item.total || item.price * item.quantity).toFixed(2).padStart(7, ' ');
+        receipt += `${name}${qty}${total}\n`;
+    });
+
+    receipt += line + '\n';
+
+    // Total
+    const totalLine = `TOTAL: ₹${kitchenInvoice.totalAmount.toFixed(2)}`;
+    receipt += totalLine.padStart(WIDTH) + '\n';
+
+    // --- Print ---
+    let printArea = document.getElementById('print-area');
+    if (!printArea) {
+        printArea = document.createElement('div');
+        printArea.id = 'print-area';
+        document.body.appendChild(printArea);
+    }
+
+    printArea.innerHTML = `<pre>${receipt}</pre>`;
+    window.print();
+    setTimeout(() => { printArea.innerHTML = ''; }, 500);
+};
+
+
+
+
+
+            const printInvoice = (invoiceData) => {
+    const receiptText = generateReceiptText(invoiceData);
+
+    // Create or get hidden print area
+    let printArea = document.getElementById('print-area');
+    if (!printArea) {
+        printArea = document.createElement('div');
+        printArea.id = 'print-area';
+        document.body.appendChild(printArea);
+    }
+
+    // Insert aligned receipt
+    printArea.innerHTML = `<pre>${receiptText}</pre>`;
+
+    // Print
+    window.print();
+
+    // Clear after print
+    setTimeout(() => { printArea.innerHTML = ''; }, 500);
+};
+
+
+
+
+
+            const handlePaymentAndInvoice = async (order, paymentMethod, cashAmount, onlineAmount) => {
+                showLoader();
+                try {
+                    const now = new Date();
+                    const invoiceRef = database.ref('invoices').push();
+                    const invoiceKey = invoiceRef.key;
+
+                    // Generate Invoice Number (transaction ensures uniqueness)
+                    const invoiceNumber = await generateInvoiceNumber(now);
+
+                    // Construct Invoice Data
+                    const invoiceData = {
+                        id: invoiceKey,
+                        invoiceNumber: invoiceNumber,
+                        date: now.toISOString(),
+                        total: order.totalAmount,
+                        paymentMode: paymentMethod,
+                        cashAmount: parseFloat(cashAmount.toFixed(2)),
+                        onlineAmount: parseFloat(onlineAmount.toFixed(2)),
+                        items: order.items,
+                        empName: order.empName,
+                        tableNo: order.tableNo,
+                        customerName: order.customerName,
+                    };
+
+                    // Store Invoice
+                    await invoiceRef.set(invoiceData);
+
+                    // Update Order Status
+                    await database.ref('orders/' + order.orderId).update({
+                        status: 'Completed',
+                        invoiceId: invoiceKey,
+                        paymentMethod: paymentMethod,
+                        completionTime: now.toISOString()
+                    });
+
+                    showPopupMessage('Order completed and invoice generated!');
+
+                    // Trigger the print dialog
+                    printInvoice(invoiceData);
+
+                } catch (error) {
+                    console.error("Error finalising order payment:", error);
+                    showPopupMessage('Failed to finalise order and generate invoice.');
+                } finally {
+                    hideLoader();
+                }
+            };
+
+
+            // --- LOGIN UI SWITCHING LOGIC ---
+
+            showAdminBtn.addEventListener('click', () => {
+                adminLoginView.style.display = 'block';
+                employeeLoginView.style.display = 'none';
+                showAdminBtn.classList.add('active');
+                showEmployeeBtn.classList.remove('active');
+                adminLoginForm.reset();
+            });
+
+            showEmployeeBtn.addEventListener('click', () => {
+                adminLoginView.style.display = 'none';
+                employeeLoginView.style.display = 'block';
+                showEmployeeBtn.classList.add('active');
+                showAdminBtn.classList.remove('active');
+                employeeLoginForm.reset();
+            });
+
+            // Set default view on load
+            showAdminBtn.click();
+
+
+            // --- UI UPDATE AND LOGOUT FUNCTION ---
+
+            const showLogin = () => loginModal.style.display = 'flex';
+            const hideLogin = () => loginModal.style.display = 'none';
+
+
+            const updateUIForLoginStatus = (isLoggedIn) => {
+                if (isLoggedIn) {
+                    userNameDisplay.textContent = `Logged in as ${loggedInUserName} (${loggedInRole})`;
+                    logoutBtn.style.display = 'inline-block';
+                    // Hide modal if it's visible
+                    hideLogin();
+                    
+                    // === MODIFIED LOGIC START: Conditional View Button ===
+                    if (loggedInRole === 'Admin') {
+                        viewOrdersBtn.style.display = 'inline-block'; // Show for Admin
+                    } else {
+                        viewOrdersBtn.style.display = 'none'; // Hide for Employee
+                    }
+                    // === MODIFIED LOGIC END ===
+
+                } else {
+                    userNameDisplay.textContent = '';
+                    logoutBtn.style.display = 'none';
+                    viewOrdersBtn.style.display = 'none'; // Always hide when logged out
+                    // Show login modal
+                    showLogin();
+                }
+            };
+
+            const handleUserLogout = () => {
+                if (loggedInRole === 'Admin') {
+                    localStorage.removeItem("loggedInAdmin");
+                } else if (loggedInRole === 'Employee') {
+                    localStorage.removeItem('mapples_empId');
+                }
+                loggedInRole = null;
+                loggedInUserId = null;
+                loggedInUserName = null;
+                showPopupMessage('You have been logged out.');
+                updateUIForLoginStatus(false);
+                // Reset form to default admin view
+                showAdminBtn.click();
+            };
+
+            // Ensure logout button listener is bound once
+            if (logoutBtn.getAttribute('data-listener-added') !== 'true') {
+                logoutBtn.addEventListener('click', handleUserLogout);
+                logoutBtn.setAttribute('data-listener-added', 'true');
+            }
+
+
+            // --- LOGIN HANDLERS ---
+
+            const handleAdminLogin = (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                firebase.database().ref("admins").once("value")
+                    .then(snapshot => {
+                        let foundAdmin = null;
+
+                        snapshot.forEach(adminSnap => {
+                            const admin = adminSnap.val();
+                            if (admin.email === email) {
+                                foundAdmin = admin;
+                            }
+                        });
+
+                        if (foundAdmin) {
+                            localStorage.setItem("loggedInAdmin", foundAdmin.name || "Admin");
+                            loggedInRole = 'Admin';
+                            // Admin ID is typically not used for orders, so we use a constant string
+                            loggedInUserId = 'Admin'; 
+                            loggedInUserName = foundAdmin.name || "Admin";
+                            updateUIForLoginStatus(true);
+                            showPopupMessage(`Welcome, Admin ${loggedInUserName}!`);
+                        } else {
+                            alert("Unauthorized: Email not in admins list!");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Login error:", error);
+                        alert("Login failed, check console.");
+                    });
+            };
+
+            const handleEmployeeLogin = (e) => {
+                e.preventDefault();
+                const enteredEmpId = loginEmpIdInput.value.trim();
+                const enteredDob = loginDobInput.value;
+
+                const validEmployee = employees.find(emp =>
+                    emp.empId === enteredEmpId && emp.dob === enteredDob
+                );
+
+                if (validEmployee) {
+                    loggedInRole = 'Employee';
+                    loggedInUserId = enteredEmpId;
+                    loggedInUserName = validEmployee.name;
+                    localStorage.setItem('mapples_empId', loggedInUserId);
+                    updateUIForLoginStatus(true);
+                    showPopupMessage(`Welcome, Employee ${loggedInUserName}!`);
+                } else {
+                    showPopupMessage('Invalid Employee ID or Date of Birth. Please try again.');
+                }
+            };
+
+            // Attach form listeners
+            adminLoginForm.addEventListener('submit', handleAdminLogin);
+            employeeLoginForm.addEventListener('submit', handleEmployeeLogin);
+
+
+            // --- SESSION CHECK ON LOAD ---
+
+            const checkLoginStatus = () => {
+                // 1. Check for Admin session
+                const savedAdminName = localStorage.getItem("loggedInAdmin");
+                if (savedAdminName) {
+                    loggedInRole = 'Admin';
+                    loggedInUserId = 'Admin'; // Consistent ID for Admin
+                    loggedInUserName = savedAdminName;
+                    updateUIForLoginStatus(true);
+                    return;
+                }
+
+                // 2. Check for Employee session
+                const storedEmpId = localStorage.getItem('mapples_empId');
+                if (storedEmpId) {
+                    const employee = employees.find(emp => emp.empId === storedEmpId);
+                    if (employee) {
+                        loggedInRole = 'Employee';
+                        loggedInUserId = storedEmpId;
+                        loggedInUserName = employee.name;
+                        updateUIForLoginStatus(true);
+                        return;
+                    } else {
+                        localStorage.removeItem('mapples_empId');
+                    }
+                }
+
+                // 3. If neither, show login modal
+                updateUIForLoginStatus(false);
+            };
+
+
+            // --- FIREBASE DATA LISTENERS ---
+            database.ref('products').on('value', (snapshot) => {
+                products = [];
+                snapshot.forEach(childSnapshot => {
+                    products.push(childSnapshot.val());
+                });
+                renderNewOrderMenuItems();
+            });
+
+            database.ref('orders').on('value', (snapshot) => {
+                orders = [];
+                let pendingCount = 0; // NEW: Initialize count
+                let sendCount = 0;    // NEW: Initialize count
+
+                snapshot.forEach(childSnapshot => {
+                    const order = childSnapshot.val();
+                    orders.push(order);
+                    
+                    // NEW: Count the statuses
+                    if (order.status === 'Pending') {
+                        pendingCount++;
+                    } else if (order.status === 'Send') {
+                        sendCount++;
+                    }
+                });
+                
+                // NEW: Update the display elements
+                pendingCountSpan.textContent = pendingCount;
+                sendCountSpan.textContent = sendCount;
+
+                renderOrdersTable(searchInput.value, dateInput.value);
+            });
+
+            database.ref('employees').on('value', (snapshot) => {
+                employees = [];
+                snapshot.forEach(childSnapshot => {
+                    employees.push(childSnapshot.val());
+                });
+                renderOrdersTable(searchInput.value, dateInput.value);
+                // CRUCIAL: Check login status after employees array is populated
+                checkLoginStatus();
+            });
+
+            // Initial render on load (will be triggered again after data load)
+            renderOrdersTable(searchInput.value, dateInput.value);
+
+            // Add event listeners for filtering
+            searchInput.addEventListener('input', () => renderOrdersTable(searchInput.value, dateInput.value));
+            dateInput.addEventListener('change', () => renderOrdersTable(searchInput.value, dateInput.value));
+        });
+    </script>
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content" id="login-modal-content" style="max-width: 400px;">
+            <div id="login-role-selector" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button type="button" class="btn btn-info active" id="show-admin-login">Admin Login</button>
+                <button type="button" class="btn btn-info" id="show-employee-login">Employee Login</button>
+            </div>
+
+            <div id="admin-login-view" style="display: block;">
+                <h3>Admin Access</h3>
+                <form id="admin-login-form">
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" required>
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" required>
+                    <div class="modal-actions">
+                        <button type="submit" class="save-btn">Login as Admin</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="employee-login-view" style="display: none;">
+                <h3>Employee Access</h3>
+                <form id="employee-login-form">
+                    <label for="login-emp-id">Employee ID:</label>
+                    <input type="text" id="login-emp-id" required>
+                    <label for="login-dob">Date of Birth:</label>
+                    <input type="date" id="login-dob" required>
+                    <div class="modal-actions">
+                        <button type="submit" class="save-btn">Login as Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+</html>
