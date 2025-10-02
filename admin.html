@@ -1,0 +1,2967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapple's Cafe - Billing System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-color: #6a3d11;
+            --secondary-color: #d8c29d;
+            --accent-color: #a44a3f;
+            --bg-color: #f7f2eb;
+            --card-bg: #fff;
+            --text-dark: #333;
+            --text-light: #f4f4f4;
+            --success-color: #4CAF50;
+            --danger-color: #d32f2f;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* -------------------- Sidebar & Header -------------------- */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .cafe-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--secondary-color);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--card-bg);
+            box-shadow: var(--box-shadow);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+	/* Hide QR in mobile/tablet */
+.header .qr-section {
+    display: none;
+}
+
+/* Desktop view */
+@media (min-width: 769px) {
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header .qr-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        height: 100%; /* take full header height */
+    }
+
+    .header .qr-section #qr-code {
+        width: 100%;
+        height: 100%;
+        max-width: 70px;   /* prevent it from getting too big */
+        max-height: 70px;
+    }
+
+    /* Force the QR canvas or img inside to fit */
+    .header .qr-section #qr-code canvas,
+    .header .qr-section #qr-code img {
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
+
+
+  
+               
+        /* -------------------- Dashboard -------------------- */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+
+        .dashboard-card h3 {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .dashboard-card p {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 10px;
+            color: var(--text-dark);
+        }
+
+        .dashboard-graphs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .graph-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .graph-card h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        /* -------------------- Product & Sales View -------------------- */
+        .content-section {
+            padding: 20px;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-header h2 {
+            color: var(--primary-color);
+        }
+
+        .action-buttons button {
+            padding: 8px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        /* General button styling for professional look */
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary { background-color: #5d4037; }
+        .btn-success { background-color: #4CAF50; }
+        .btn-info { background-color: #2196F3; }
+        .btn-danger { background-color: #d32f2f; }
+        .btn-warning { background-color: #FFC107; color: var(--text-dark); }
+
+
+        .action-buttons button.add-btn { background-color: var(--success-color); color: white; }
+        .action-buttons button.edit-btn { background-color: #2196F3; color: white; }
+        .action-buttons button.delete-btn { background-color: var(--danger-color); color: white; }
+        .action-buttons button.import-btn { background-color: #795548; color: white; }
+        .action-buttons button.export-btn { background-color: #5d4037; color: white; }
+        .action-buttons button.all-delete-btn { background-color: var(--danger-color); color: white; }
+
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            overflow-x: auto; /* Added for responsive tables */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 600px; /* Ensures table is wide enough on small screens for scroll */
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 15px;
+        }
+
+        thead {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #ddd;
+        }
+
+        .product-actions button, .invoice-item-actions button {
+            padding: 5px 10px;
+            margin: 0 2px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+        }
+
+        .product-actions .edit-btn { background-color: #2196F3; }
+        .product-actions .delete-btn { background-color: var(--danger-color); }
+        .view-details-btn {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        
+        /* -------------------- Employee Management View -------------------- */
+        .employees-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+       
+        /* -------------------- Invoice View -------------------- */
+        .invoice-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 120px);
+        }
+
+        .products-list, .invoice-panel {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow-y: auto;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            background: var(--bg-color);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-card h4 {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .product-card p {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .invoice-panel h3 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .invoice-items {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .invoice-item-info {
+            flex: 1;
+        }
+
+        .invoice-item-actions button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .invoice-item-actions button.remove-btn { background-color: var(--danger-color); }
+        .invoice-item-actions button.add-btn { background-color: var(--success-color); }
+
+        .invoice-summary {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .payment-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .payment-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 700;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .payment-buttons .cash-btn { background-color: #4CAF50; }
+        .payment-buttons .online-btn { background-color: #2196F3; }
+        .payment-buttons .split-btn { background-color: #FFC107; }
+
+        .invoice-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .invoice-buttons button {
+            width: 48%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .invoice-buttons .save-print-btn { background-color: var(--success-color); }
+        .invoice-buttons .reset-btn { background-color: var(--danger-color); }
+
+        /* -------------------- Modals -------------------- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .modal-actions .save-btn { background-color: var(--success-color); color: white; }
+        .modal-actions .cancel-btn { background-color: #ddd; }
+        
+        @media (max-width: 768px) {
+            body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        /* UPDATED: Added new styles for horizontal menu on mobile */
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 10px;
+        overflow-x: auto;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* UPDATED: Hide cafe name in mobile top bar */
+    .cafe-name {
+        display: none;
+    }
+    
+    /* UPDATED: Make menu horizontal, scrollable, and compact */
+    .sidebar-menu {
+        display: flex; 
+        padding: 0;
+    }
+
+    .sidebar-menu li {
+        margin-bottom: 0;
+        margin-right: 10px; 
+        flex-shrink: 0; 
+    }
+
+    .sidebar-menu a {
+        padding: 8px 12px; 
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+
+            .header { flex-direction: column; align-items: flex-start; }
+            .header h1 { margin-bottom: 10px; }
+            .dashboard-graphs {
+                grid-template-columns: 1fr;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .action-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-top: 10px;
+            }
+            .action-buttons button {
+                margin: 0;
+            }
+            .stock-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .stock-actions .quantity-controls,
+            .stock-actions .stock-buttons {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            .stock-actions .quantity-controls button,
+            .stock-actions .stock-buttons button {
+                flex: 1;
+            }
+            .stock-actions .quantity-input {
+                flex: 0 0 100px;
+            }
+        }
+
+        /* New popup message styling */
+        .popup-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            z-index: 1001;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .popup-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Sales Details Modal styling */
+        .sales-details-modal .modal-content {
+            max-width: 400px;
+        }
+        .sales-details-modal h3 {
+            text-align: center;
+        }
+        .sales-details-modal .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 5px;
+        }
+        .sales-details-modal .receipt-total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            border-top: 2px dashed #333;
+            padding-top: 10px;
+        }
+        
+        /* UPDATED: Stock Management CSS */
+        .stock-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .stock-actions .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stock-actions .stock-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .stock-actions .quantity-input {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .stock-actions .add-btn { background-color: var(--success-color); }
+        .stock-actions .remove-btn { background-color: var(--accent-color); }
+        .stock-actions .edit-btn { background-color: #2196F3; }
+        .stock-actions .delete-btn { background-color: var(--danger-color); }
+        
+        /* NEW: Loader CSS */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(247, 242, 235, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .loader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .coffee-cup {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .coffee-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0;
+            background-color: var(--primary-color);
+            animation: fill-up 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fill-up {
+            0% {
+                height: 0%;
+            }
+            50% {
+                height: 100%;
+            }
+            100% {
+                height: 0%;
+            }
+        }
+    </style>
+
+	
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+</head>
+<body>
+
+    <div class="loader" id="loader">
+        <div class="coffee-cup">
+            <div class="coffee-liquid"></div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2 class="cafe-name">Mapple's Cafe</h2>
+        <ul class="sidebar-menu">
+            <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
+            <li><a href="#" data-section="products">Products</a></li>
+            <li><a href="order.html">Orders</a></li>
+	    <li><a href="#" data-section="sales">Sales</a></li>
+            <li><a href="#" data-section="stock">Stock</a></li>
+	    <li><a href="#" data-section="salary">Salary</a></li>
+            <li><a href="#" data-section="employees">Employees</a></li>
+            <li><a href="#" data-section="attendance">Attendance</a></li>
+	    <li><a href="#" data-section="admins">Admin</a></li>
+	    </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1 id="current-page-title">Dashboard</h1>
+	    <div class="qr-section">
+               <div id="qr-code" class="qr-code"></div>
+                </div>
+        </div>
+        
+        <div id="dashboard-section" class="content-section active">
+            <div class="dashboard-container">
+                <div class="dashboard-card">
+                    <h3>Total Products</h3>
+                    <p id="total-products-card">0</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Today's Sales (₹)</h3>
+                    <p id="today-sales-card">0.00</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Today's Sales Count</h3>
+                    <p id="today-sales-count-card">0</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Cash Sales (₹)</h3>
+                    <p id="cash-sales-card">0.00</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Online Sales (₹)</h3>
+                    <p id="online-sales-card">0.00</p>
+                </div>
+            </div>
+            <div class="dashboard-graphs">
+                <div class="graph-card">
+                    <h3>Daily Sales</h3>
+                    <canvas id="daily-sales-chart"></canvas>
+                </div>
+                <div class="graph-card">
+                    <h3>Monthly Sales</h3>
+                    <canvas id="monthly-sales-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="products-section" class="content-section">
+            <div class="section-header">
+                <h2>Product Management</h2>
+                <div class="action-buttons">
+                    <input type="file" id="importCsvInput" accept=".csv" style="display: none;">
+                    <button class="add-btn" id="addProductBtn">Add</button>
+                    <button class="import-btn" id="importCsvBtn">Import CSV</button>
+                    <button class="export-btn" id="exportCsvBtn">Export CSV</button>
+                    <button class="export-btn" id="exportPdfBtn">Export PDF</button>
+                    <button class="all-delete-btn" id="all-delete-btn">Delete Selected</button>
+                    <button class="reset-btn" id="clear-all-btn">Clear All</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="products-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all-products"></th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="invoice-section" class="content-section">
+            <div class="invoice-main">
+                <div class="products-list">
+                    <h3>Menu Items</h3>
+                    <div id="products-grid-container" class="products-grid">
+                        </div>
+                </div>
+                <div class="invoice-panel">
+                    <h3>Current Invoice</h3>
+                    <ul id="invoice-items-list" class="invoice-items">
+                        </ul>
+                    <div class="invoice-summary">
+                        <p>Total: <span id="invoice-total">₹0.00</span></p>
+                    </div>
+                    
+                    <div class="payment-buttons">
+                        <button class="cash-btn" id="cash-pay-btn">Cash</button>
+                        <button class="online-btn" id="online-pay-btn">Online</button>
+                        <button class="split-btn" id="split-pay-btn">Split</button>
+                    </div>
+                    
+                    <div class="invoice-buttons">
+                        <button class="reset-btn" id="reset-invoice-btn">Reset Invoice</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+	<div id="admins-section" class="content-section">
+  <div class="section-header">
+    <h2>Admin Management</h2>
+    <div class="action-buttons">
+      <button class="btn btn-success" id="addAdminBtn">Add Admin</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="admins-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Password</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+        
+        <div id="sales-section" class="content-section">
+            <div class="section-header">
+                <h2>Sales History</h2>
+            </div>
+            <div class="table-container">
+                <table id="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice ID</th>
+                            <th>Date</th>
+                            <th>Total Amount (₹)</th>
+                            <th>Payment Mode</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="stock-section" class="content-section">
+            <div class="section-header">
+                <h2>Stock Management</h2>
+                <div class="action-buttons">
+                    <input type="file" id="importStockCsvInput" accept=".csv" style="display: none;">
+                    <button class="btn btn-success" id="addStockBtn">Add</button>
+                    <button class="btn btn-info" id="importStockCsvBtn">Import CSV</button>
+                    <button class="btn btn-primary" id="exportStockCsvBtn">Export CSV</button>
+                    <button class="btn btn-danger" id="deleteSelectedStockBtn">Delete Selected</button>
+                    <button class="btn btn-primary" id="clearAllStockBtn">Clear All</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="stock-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all-stock"></th>
+                            <th>ID</th>
+                            <th>Item Name</th>
+                            <th>Unit</th>
+                            <th>Quantity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+	<div id="salary-section" class="content-section">
+  <div class="section-header">
+    <h2>Salary</h2>
+    <div class="action-buttons">
+      <select id="salary-emp-select">
+        <option value="">All Employees</option>
+      </select>
+      <select id="salary-month-select">
+        <option value="">All Months</option>
+      </select>
+      <button class="btn btn-primary" id="salary-filter-btn">Filter</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="salary-table">
+      <thead>
+        <tr>
+          <th>Emp ID</th>
+          <th>Emp Name</th>
+          <th>Total Present</th>
+          <th>Total Absent</th>
+          <th>Total Hours</th>
+          <th>Salary Amount (₹)</th>
+          <th>Month</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="salary-details-modal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:600px;">
+    <span class="close-btn" onclick="salaryDetailsModal.style.display='none'">&times;</span>
+    <h3 id="salary-details-title">Employee Attendance</h3>
+    <div class="table-container">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Emp ID</th>
+            <th>Emp Name</th>
+            <th>IN Time</th>
+            <th>Out Time</th>
+            <th>Total Duration</th>
+            <th>Daily Salary (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="salary-details-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+        
+        <div id="employees-section" class="content-section">
+            <div class="section-header">
+                <h2>Employee Management</h2>
+                <div class="action-buttons">
+    <button class="btn btn-success" id="addEmployeeBtn">Add Employee</button>
+    <button class="btn btn-primary" id="generateQrBtn">Generate QR</button>
+    <button class="btn btn-danger" id="deleteQrBtn">Delete QR</button> 
+</div>
+
+            </div>
+            <div class="employees-container">
+                    <div class="table-container">
+                    <table id="employees-table">
+                        <thead>
+                            <tr>
+                                <th>Emp ID</th>
+                                <th>Date Hired</th>
+                                <th>Name</th>
+                                <th>Phone No</th>
+                                <th>Address</th>
+                                <th>Work Type</th>
+				<th>Per Hour Salary (₹)</th>
+                                <th>Email</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="attendance-section" class="content-section">
+            <div class="section-header">
+                <h2>Attendance</h2>
+            </div>
+            <div class="table-container">
+                <table id="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Emp ID</th>
+                            <th>Emp Name</th>
+                            <th>IN Time</th>
+                            <th>Out Time</th>
+                            <th>Total Duration(HH:MM:SS)</th>
+			    <th>Daily Salary (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+    
+    <div id="popup-message-container" class="popup-message"></div>
+
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title">Add Product</h3>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <label for="product-name">Product Name:</label>
+                <input type="text" id="product-name" required>
+                <label for="product-price">Price (₹):</label>
+                <input type="number" id="product-price" step="0.01" required>
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="save-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="split-pay-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Split Payment</h3>
+            <p>Total Amount: <span id="split-total-amount"></span></p>
+            <form id="split-pay-form">
+                <label for="split-cash-amount">Cash Amount (₹):</label>
+                <input type="number" id="split-cash-amount" step="0.01">
+                <label for="split-online-amount">Online Amount (₹):</label>
+                <input type="number" id="split-online-amount" step="0.01">
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="save-btn">Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="sales-details-modal" class="modal sales-details-modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Invoice Receipt</h3>
+            <div id="receipt-details"></div>
+        </div>
+    </div>
+    
+    <div id="stock-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="stock-modal-title">Add Stock Item</h3>
+            <form id="stock-form">
+                <input type="hidden" id="stock-id">
+                <label for="stock-name">Item Name:</label>
+                <input type="text" id="stock-name" required>
+                <label for="stock-unit">Unit:</label>
+                <input type="text" id="stock-unit" required>
+                <label for="stock-quantity">Initial Quantity:</label>
+                <input type="number" id="stock-quantity" step="1" required>
+                <div class="modal-actions">
+                    <button type="button" class="btn cancel-btn">Cancel</button>
+                    <button type="submit" class="btn save-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+	<div id="admin-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h3 id="admin-modal-title">Add Admin</h3>
+    <form id="admin-form">
+      <input type="hidden" id="admin-id">
+
+      <label for="admin-name">Name:</label>
+      <input type="text" id="admin-name" required>
+
+      <label for="admin-email">Email:</label>
+      <input type="email" id="admin-email" required>
+
+      <label for="admin-password">Password:</label>
+      <input type="password" id="admin-password" required>
+
+      <div class="modal-actions">
+        <button type="button" class="btn cancel-btn">Cancel</button>
+        <button type="submit" class="btn save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+    <div id="employee-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="employee-modal-title">Add Employee</h3>
+            <form id="employee-form">
+                <input type="hidden" id="employee-db-id">
+                <label for="employee-name">Name:</label>
+                <input type="text" id="employee-name" required>
+                <label for="employee-phone">Phone No:</label>
+                <input type="tel" id="employee-phone" required>
+                <label for="employee-address">Address:</label>
+                <input type="text" id="employee-address" required>
+                <label for="employee-work-type">Work Type:</label>
+                <select id="employee-work-type" required>
+                    <option value="Part time">Part time</option>
+                    <option value="Full time">Full time</option>
+                </select>
+		<label for="employee-salary">Per Hour Salary (₹):</label>
+		<input type="number" id="employee-salary" step="0.01" required>
+                <label for="employee-email">Email:</label>
+                <input type="email" id="employee-email" required>
+                <label for="employee-dob">Date of Birth:</label>
+                <input type="date" id="employee-dob">
+                <div class="modal-actions">
+                    <button type="button" class="btn cancel-btn" id="employee-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn save-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.content-section');
+            const navLinks = document.querySelectorAll('.sidebar-menu a');
+            const currentPageTitle = document.getElementById('current-page-title');
+            const popupMessageContainer = document.getElementById('popup-message-container');
+            const productsTableBody = document.querySelector('#products-table tbody');
+            const salesTableBody = document.querySelector('#sales-table tbody');
+            const stockTableBody = document.querySelector('#stock-table tbody');
+            const employeesTableBody = document.querySelector('#employees-table tbody');
+            const attendanceTableBody = document.querySelector('#attendance-table tbody');
+            const loader = document.getElementById('loader');
+
+	    // Confirmation Modal Elements
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const confirmationTitle = document.getElementById('confirmation-title');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const confirmOkBtn = document.getElementById('confirm-ok-btn');
+            const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+            // New filter elements
+            const searchInput = document.getElementById('search-input');
+            const dateInput = document.getElementById('date-input');
+
+            let confirmCallback = null;
+
+
+            const showLoader = () => {
+                loader.classList.add('active');
+            };
+
+            const hideLoader = () => {
+                setTimeout(() => {
+                    loader.classList.remove('active');
+                }, 500); 
+            };
+            
+            // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyABDWSr0M_A9sVw351QLm_MMfUDnLzW5Ik",
+  authDomain: "mapples-8da36.firebaseapp.com",
+  databaseURL: "https://mapples-8da36-default-rtdb.firebaseio.com", // add this for Realtime DB
+  projectId: "mapples-8da36",
+  storageBucket: "mapples-8da36.appspot.com", // fixed ✅
+  messagingSenderId: "673045371502",
+  appId: "1:673045371502:web:095d625ab71b1fc7ada47f",
+  measurementId: "G-Q9Q5YZD7J3"
+};
+
+            
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            const auth = firebase.auth();
+	    
+            
+            let products = [];
+            let invoices = [];
+            let stock = [];
+            let employees = [];
+            let attendance = [];
+            let currentInvoice = [];
+	    
+
+            const showPopupMessage = (message) => {
+                popupMessageContainer.textContent = message;
+                popupMessageContainer.classList.add('show');
+                setTimeout(() => {
+                    popupMessageContainer.classList.remove('show');
+                }, 3000);
+            };
+
+            const updateDashboard = () => {
+                const totalProducts = products.length;
+                const today = new Date().toLocaleDateString();
+                
+                const todaySales = invoices.filter(inv => new Date(inv.date).toLocaleDateString() === today);
+                
+                const totalSalesAmount = todaySales.reduce((sum, inv) => sum + inv.total, 0);
+                const todaySalesCount = todaySales.length;
+                const cashSales = todaySales.filter(inv => inv.paymentMode === 'Cash' || inv.paymentMode === 'Split').reduce((sum, inv) => sum + (inv.cashAmount || 0), 0);
+                const onlineSales = todaySales.filter(inv => inv.paymentMode === 'Online' || inv.paymentMode === 'Split').reduce((sum, inv) => sum + (inv.onlineAmount || 0), 0);
+
+                document.getElementById('total-products-card').textContent = totalProducts;
+                document.getElementById('today-sales-card').textContent = `₹${totalSalesAmount.toFixed(2)}`;
+                document.getElementById('today-sales-count-card').textContent = todaySalesCount;
+                document.getElementById('cash-sales-card').textContent = `₹${cashSales.toFixed(2)}`;
+                document.getElementById('online-sales-card').textContent = `₹${onlineSales.toFixed(2)}`;
+
+                renderDailySalesChart();
+                renderMonthlySalesChart();
+            };
+
+            const renderDailySalesChart = () => {
+                const salesByDay = {};
+                invoices.forEach(inv => {
+                    const date = new Date(inv.date).toLocaleDateString();
+                    salesByDay[date] = (salesByDay[date] || 0) + inv.total;
+                });
+                
+                const labels = Object.keys(salesByDay).sort((a, b) => new Date(a) - new Date(b));
+                const data = labels.map(label => salesByDay[label]);
+
+                const ctx = document.getElementById('daily-sales-chart').getContext('2d');
+                if (window.dailySalesChart) window.dailySalesChart.destroy();
+                window.dailySalesChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Daily Sales (₹)',
+                            data: data,
+                            backgroundColor: '#6a3d11',
+                            borderColor: '#a44a3f',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            };
+
+            const renderMonthlySalesChart = () => {
+                const salesByMonth = {};
+                invoices.forEach(inv => {
+                    const month = new Date(inv.date).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                    salesByMonth[month] = (salesByMonth[month] || 0) + inv.total;
+                });
+                
+                const labels = Object.keys(salesByMonth);
+                const data = labels.map(label => salesByMonth[label]);
+
+                const ctx = document.getElementById('monthly-sales-chart').getContext('2d');
+                if (window.monthlySalesChart) window.monthlySalesChart.destroy();
+                window.monthlySalesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Monthly Sales (₹)',
+                            data: data,
+                            backgroundColor: '#a44a3f',
+                            borderColor: '#6a3d11',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            };
+
+            const switchSection = (sectionId) => {
+                showLoader();
+                setTimeout(() => {
+                    sections.forEach(section => section.classList.remove('active'));
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    
+                    document.getElementById(sectionId).classList.add('active');
+                    document.querySelector(`[data-section="${sectionId.replace('-section', '')}"]`).classList.add('active');
+                    
+                    currentPageTitle.textContent = sectionId.replace('-section', '').charAt(0).toUpperCase() + sectionId.replace('-section', '').slice(1);
+
+                    if (sectionId === 'products-section') renderProductsTable();
+                    if (sectionId === 'invoice-section') renderProductCards();
+                    if (sectionId === 'sales-section') renderSalesHistory();
+                    if (sectionId === 'dashboard-section') updateDashboard();
+                    if (sectionId === 'stock-section') renderStockTable();
+                    if (sectionId === 'employees-section') renderEmployeesTable();
+                    if (sectionId === 'attendance-section') renderAttendanceTable();
+		    if (sectionId === 'salary-section') openSalarySection();
+
+                    
+                    hideLoader();
+                }, 100);
+            };
+
+            // Sidebar navigation
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        const section = link.getAttribute('data-section');
+
+        // If link has data-section, handle with JS
+        if (section) {
+            e.preventDefault();
+            const sectionId = section + '-section';
+            switchSection(sectionId);
+        } 
+        // If link is real page (like order.html), let it work normally
+        else if (href && href !== '#') {
+            // do nothing → browser will navigate
+        }
+    });
+});
+
+
+// === Salary View Logic ===
+const salaryTableBody = document.querySelector('#salary-table tbody');
+const salaryFilterBtn = document.getElementById('salary-filter-btn');
+const salaryEmpSelect = document.getElementById('salary-emp-select');
+const salaryMonthSelect = document.getElementById('salary-month-select');
+const salaryDetailsModal = document.getElementById('salary-details-modal');
+const salaryDetailsBody = document.getElementById('salary-details-body');
+const salaryDetailsTitle = document.getElementById('salary-details-title');
+
+// Salaries from Firebase
+let salaries = {};
+
+// Helper: get YYYY-MM from a date string like "2025-09-28"
+const getMonthKey = (dateStr) => (dateStr || '').slice(0, 7);
+
+// Populate filters (employees + months)
+const populateSalaryFilters = () => {
+    salaryEmpSelect.innerHTML = '<option value="">All Employees</option>';
+    employees.forEach(emp => {
+        const opt = document.createElement('option');
+        opt.value = emp.empId || '';
+        opt.textContent = `${emp.empId || ''} - ${emp.name || ''}`;
+        salaryEmpSelect.appendChild(opt);
+    });
+
+    const monthsSet = new Set(
+        attendance.map(a => getMonthKey(a.date)).filter(Boolean)
+    );
+    const months = Array.from(monthsSet).sort().reverse();
+    salaryMonthSelect.innerHTML = '<option value="">All Months</option>';
+    months.forEach(month => {
+        const [year, mon] = month.split('-');
+        const monthName = new Date(year, (mon || '01') - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const opt = document.createElement('option');
+        opt.value = month;
+        opt.textContent = monthName;
+        salaryMonthSelect.appendChild(opt);
+    });
+};
+
+// Render Salary Table
+const renderSalaryTable = () => {
+    salaryTableBody.innerHTML = '';
+    const selectedEmpId = salaryEmpSelect.value;
+    const selectedMonth = salaryMonthSelect.value;
+
+    employees.forEach(emp => {
+        if (selectedEmpId && emp.empId !== selectedEmpId) return;
+
+        // Filter attendance for employee + month
+        const empAttendance = attendance.filter(a => {
+            const matchesEmpId = (a.employeeEmpId && emp.empId && a.employeeEmpId === emp.empId);
+            const matchesUid = (a.employeeId && emp.id && a.employeeId === emp.id);
+            return (matchesEmpId || matchesUid) && (!selectedMonth || getMonthKey(a.date) === selectedMonth);
+        });
+
+        let totalHours = 0;
+        const presentDates = new Set();
+
+        empAttendance.forEach(a => {
+            if (a.inTime && a.outTime) {
+                const inT = new Date(a.inTime);
+                const outT = new Date(a.outTime);
+                const diffHrs = (outT - inT) / (1000 * 60 * 60);
+                if (!isNaN(diffHrs) && diffHrs > 0) {
+                    totalHours += diffHrs;
+                    presentDates.add(a.date);
+                }
+            }
+        });
+
+        const totalPresent = presentDates.size;
+        const totalAbsent = Math.max(0, empAttendance.length - totalPresent);
+
+        const hourlyRate = emp.salaryPerHour || 0;
+        const salaryAmount = totalHours * hourlyRate;
+
+        const monthKey = selectedMonth || getMonthKey(new Date().toISOString());
+        const monthText = selectedMonth
+            ? new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1] - 1)
+                .toLocaleString('en-US', { month: 'long', year: 'numeric' })
+            : 'All';
+
+        // Status from Firebase salaries, default "Unpaid"
+        const status = (salaries[emp.empId] && salaries[emp.empId][monthKey]?.status) || 'Unpaid';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${emp.empId || ''}</td>
+            <td>${emp.name || ''}</td>
+            <td>${totalPresent}</td>
+            <td>${totalAbsent}</td>
+            <td>${totalHours.toFixed(2)} hrs</td>
+            <td>₹${salaryAmount.toFixed(2)}</td>
+            <td>${monthText}</td>
+            <td>${status}</td>
+            <td>
+                <button class="btn btn-info view-daily-btn" 
+                        data-empid="${emp.empId || ''}" 
+                        data-uid="${emp.id || ''}" 
+                        data-month="${monthKey}">View</button>
+                ${status === 'Unpaid' 
+                    ? `<button class="btn btn-success mark-paid-btn" 
+                               data-empid="${emp.empId || ''}" 
+                               data-month="${monthKey}"
+                               data-hours="${totalHours}"
+                               data-amount="${salaryAmount}">Mark as Paid</button>` 
+                    : ''
+                }
+                <button class="btn btn-warning print-invoice-btn" 
+                        data-empid="${emp.empId || ''}" 
+                        data-month="${monthKey}">Print Invoice</button>
+            </td>
+        `;
+        salaryTableBody.appendChild(row);
+    });
+
+    if (!salaryTableBody.hasChildNodes()) {
+        salaryTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found</td></tr>`;
+    }
+};
+
+// Event delegation for table buttons
+salaryTableBody.addEventListener('click', (e) => {
+    const target = e.target;
+
+    // Mark as Paid
+    if (target.classList.contains('mark-paid-btn')) {
+        const empId = target.dataset.empid;
+        const month = target.dataset.month;
+        const totalHours = parseFloat(target.dataset.hours);
+        const salaryAmount = parseFloat(target.dataset.amount);
+
+        const emp = employees.find(emp => emp.empId === empId);
+        if (emp) {
+            const salaryRecord = {
+                empId: emp.empId,
+                name: emp.name,
+                month: month,
+                totalHours: totalHours,
+                salaryAmount: salaryAmount,
+                status: 'Paid',
+                timestamp: new Date().toISOString()
+            };
+
+            database.ref(`salaries/${emp.empId}/${month}`).set(salaryRecord)
+                .then(() => {
+                    showPopupMessage('Salary marked as Paid & saved!');
+                })
+                .catch(error => console.error("Error saving salary:", error));
+        }
+    }
+
+    // Print Invoice (Professional Payslip)
+    if (target.classList.contains('print-invoice-btn')) {
+        const empId = target.dataset.empid;
+        const month = target.dataset.month;
+        const emp = employees.find(emp => emp.empId === empId);
+        if (!emp) return;
+
+        const salaryData = salaries[empId] && salaries[empId][month];
+        const totalHours = salaryData?.totalHours || 0;
+        const salaryAmount = salaryData?.salaryAmount || 0;
+        const status = salaryData?.status || 'Unpaid';
+        const monthText = month 
+            ? new Date(month.split('-')[0], month.split('-')[1] - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }) 
+            : 'All';
+
+        const invoiceContent = `
+        <html>
+        <head>
+          <title>Salary Invoice - ${emp.name}</title>
+          <style>
+            body { font-family: 'Poppins', sans-serif; margin: 30px; }
+            .invoice-box {
+                max-width: 700px;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #eee;
+                box-shadow: 0 0 10px rgba(0,0,0,0.15);
+                font-size: 14px;
+                line-height: 24px;
+                color: #333;
+            }
+            .invoice-box h2 { text-align: center; color: #6a3d11; margin-bottom: 10px; }
+            .company { text-align: center; margin-bottom: 20px; }
+            .details, .summary {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            .details th, .details td, .summary th, .summary td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            .details th {
+                background-color: #f2f2f2;
+                text-align: left;
+            }
+            .summary th {
+                background-color: #6a3d11;
+                color: #fff;
+                text-align: left;
+            }
+            .footer {
+                text-align: center;
+                font-size: 12px;
+                margin-top: 20px;
+                color: #666;
+            }
+            .signatures {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 40px;
+            }
+            .sign-box {
+                text-align: center;
+                border-top: 1px solid #333;
+                width: 200px;
+                padding-top: 5px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="invoice-box">
+            <h2>Salary Payslip</h2>
+            <div class="company">
+              <h3>Mapple's Cafe</h3>
+              <p>123 Cafe Street, City<br>Email: info@mapplescafe.com</p>
+            </div>
+
+            <table class="details">
+              <tr><th>Employee ID</th><td>${emp.empId}</td></tr>
+              <tr><th>Name</th><td>${emp.name}</td></tr>
+              <tr><th>Month</th><td>${monthText}</td></tr>
+              <tr><th>Rate Per Hour</th><td>₹${(emp.salaryPerHour || 0).toFixed(2)}</td></tr>
+              <tr><th>Total Hours</th><td>${totalHours.toFixed(2)} hrs</td></tr>
+            </table>
+
+            <table class="summary">
+              <tr><th>Total Salary</th><td><strong>₹${salaryAmount.toFixed(2)}</strong></td></tr>
+              <tr><th>Status</th><td>${status}</td></tr>
+              <tr><th>Generated On</th><td>${new Date().toLocaleString()}</td></tr>
+            </table>
+
+            <div class="signatures">
+              <div class="sign-box">Employee Signature</div>
+              <div class="sign-box">Authorized Signatory</div>
+            </div>
+
+            <div class="footer">
+              <p>This is a computer-generated payslip and does not require physical signature.</p>
+              <p>Thank you for your service!</p>
+            </div>
+          </div>
+        </body>
+        </html>`;
+
+        const printWindow = window.open('', '', 'width=800,height=600');
+        printWindow.document.write(invoiceContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+});
+
+// Hook up filter button
+salaryFilterBtn.addEventListener('click', renderSalaryTable);
+
+// Called when user navigates to Salary
+const openSalarySection = () => {
+    populateSalaryFilters();
+    renderSalaryTable();
+};
+
+// === Load salaries from Firebase ===
+database.ref('salaries').on('value', (snapshot) => {
+    salaries = snapshot.val() || {};
+    renderSalaryTable();
+});
+
+	
+
+            // Product Management
+            const productModal = document.getElementById('product-modal');
+            const productForm = document.getElementById('product-form');
+            const modalTitle = document.getElementById('modal-title');
+            const productIdInput = document.getElementById('product-id');
+            const productNameInput = document.getElementById('product-name');
+            const productPriceInput = document.getElementById('product-price');
+            const selectAllProductsCheckbox = document.getElementById('select-all-products');
+            
+            document.getElementById('addProductBtn').addEventListener('click', () => {
+                modalTitle.textContent = 'Add Product';
+                productForm.reset();
+                productModal.style.display = 'flex';
+            });
+
+            productModal.querySelector('.close-btn').addEventListener('click', () => productModal.style.display = 'none');
+            productModal.querySelector('.cancel-btn').addEventListener('click', () => productModal.style.display = 'none');
+
+            const renderProductsTable = () => {
+                productsTableBody.innerHTML = '';
+                products.forEach((product, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="product-checkbox" data-id="${product.id}"></td>
+                        <td>${index + 1}</td>
+                        <td>${product.name}</td>
+                        <td>₹${product.price.toFixed(2)}</td>
+                        <td class="product-actions">
+                            <button class="edit-btn" data-id="${product.id}">Edit</button>
+                            <button class="delete-btn" data-id="${product.id}">Delete</button>
+                        </td>
+                    `;
+                    productsTableBody.appendChild(row);
+                });
+                updateDashboard();
+            };
+            
+            const generateProductId = () => {
+                const maxProductId = products.reduce((max, product) => Math.max(max, product.id || 0), 0);
+                return maxProductId + 1;
+            };
+
+            productForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = productIdInput.value;
+                const name = productNameInput.value.trim();
+                const price = parseFloat(productPriceInput.value);
+
+                if (id) {
+                    database.ref('products/' + id).update({ name, price })
+                        .then(() => showPopupMessage('Product updated successfully!'))
+                        .catch(error => console.error("Error updating product:", error));
+                } else {
+                    const newId = database.ref().child('products').push().key;
+                    database.ref('products/' + newId).set({ id: newId, name, price })
+                        .then(() => showPopupMessage('Product added successfully!'))
+                        .catch(error => console.error("Error adding product:", error));
+                }
+                productModal.style.display = 'none';
+            });
+
+            productsTableBody.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                if (e.target.classList.contains('edit-btn')) {
+                    const product = products.find(p => p.id === id);
+                    if (product) {
+                        modalTitle.textContent = 'Edit Product';
+                        productIdInput.value = product.id;
+                        productNameInput.value = product.name;
+                        productPriceInput.value = product.price;
+                        productModal.style.display = 'flex';
+                    }
+                } else if (e.target.classList.contains('delete-btn')) {
+                    if (confirm('Are you sure you want to delete this product?')) {
+                        database.ref('products/' + id).remove()
+                            .then(() => showPopupMessage('Product deleted successfully!'))
+                            .catch(error => console.error("Error deleting product:", error));
+                    }
+                }
+            });
+            
+            selectAllProductsCheckbox.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+
+            document.getElementById('all-delete-btn').addEventListener('click', () => {
+                const selectedIds = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => cb.dataset.id);
+                if (selectedIds.length === 0) {
+                    showPopupMessage('No products selected for deletion.');
+                    return;
+                }
+                if (confirm(`Are you sure you want to delete ${selectedIds.length} selected product(s)?`)) {
+                    const updates = {};
+                    selectedIds.forEach(id => {
+                        updates['products/' + id] = null;
+                    });
+                    database.ref().update(updates)
+                        .then(() => showPopupMessage(`${selectedIds.length} product(s) deleted successfully!`))
+                        .catch(error => console.error("Error deleting selected products:", error));
+                }
+            });
+            
+            document.getElementById('clear-all-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear ALL data? This action cannot be undone and will delete all products, invoices, and sales history.')) {
+                    database.ref().remove()
+                        .then(() => {
+                            showPopupMessage('All data cleared successfully!');
+                            window.location.reload();
+                        })
+                        .catch(error => console.error("Error clearing all data:", error));
+                }
+            });
+
+            // CSV Import/Export
+            document.getElementById('importCsvBtn').addEventListener('click', () => {
+                document.getElementById('importCsvInput').click();
+            });
+
+            document.getElementById('importCsvInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const text = event.target.result;
+                        const lines = text.split('\n').filter(line => line.trim() !== '');
+                        let updates = {};
+                        lines.slice(1).forEach(line => { // Skip header row
+                            const [id, name, price] = line.split(',');
+                            if (name && price) {
+                                const newId = database.ref().child('products').push().key;
+                                updates['products/' + newId] = { id: newId, name: name.trim(), price: parseFloat(price) };
+                            }
+                        });
+                        if (Object.keys(updates).length > 0) {
+                            database.ref().update(updates)
+                                .then(() => showPopupMessage('Products imported successfully!'))
+                                .catch(error => console.error("Error importing products:", error));
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            document.getElementById('exportCsvBtn').addEventListener('click', () => {
+                const csvHeader = ['ID', 'Name', 'Price'];
+                const csvData = products.map(p => [p.id, p.name, p.price.toFixed(2)]);
+                const csvContent = "data:text/csv;charset=utf-8," +
+                                   csvHeader.join(',') + '\n' +
+                                   csvData.map(row => row.join(',')).join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', 'products.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showPopupMessage('Products exported to CSV!');
+            });
+
+            document.getElementById('exportPdfBtn').addEventListener('click', () => {
+                const printContent = `
+                    <style>
+                        body { font-family: 'Poppins', sans-serif; }
+                        h1 { text-align: center; color: #6a3d11; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #6a3d11; color: white; }
+                        .no-print { display: none; }
+                    </style>
+                    <h1>Mapple's Cafe Product List</h1>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(p => `
+                                <tr>
+                                    <td>${p.id}</td>
+                                    <td>${p.name}</td>
+                                    <td>₹${p.price.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(printContent);
+                newWindow.document.close();
+                newWindow.print();
+            });
+
+            // Invoice Management
+            const productsGrid = document.getElementById('products-grid-container');
+            const invoiceItemsList = document.getElementById('invoice-items-list');
+            const invoiceTotalSpan = document.getElementById('invoice-total');
+            const splitPayModal = document.getElementById('split-pay-modal');
+            const splitPayForm = document.getElementById('split-pay-form');
+            const splitTotalAmountSpan = document.getElementById('split-total-amount');
+            const splitCashAmountInput = document.getElementById('split-cash-amount');
+            const splitOnlineAmountInput = document.getElementById('split-online-amount');
+
+            const renderProductCards = () => {
+                productsGrid.innerHTML = '';
+                products.forEach(product => {
+                    const card = document.createElement('div');
+                    card.classList.add('product-card');
+                    card.dataset.id = product.id;
+                    card.innerHTML = `
+                        <h4>${product.name}</h4>
+                        <p>₹${product.price.toFixed(2)}</p>
+                    `;
+                    productsGrid.appendChild(card);
+                });
+            };
+
+            const updateInvoiceTotal = () => {
+                const total = currentInvoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                invoiceTotalSpan.textContent = `₹${total.toFixed(2)}`;
+                return total;
+            };
+
+            const renderInvoiceItems = () => {
+                invoiceItemsList.innerHTML = '';
+                currentInvoice.forEach(item => {
+                    const li = document.createElement('li');
+                    li.classList.add('invoice-item');
+                    li.innerHTML = `
+                        <div class="invoice-item-info">
+                            <span>${item.name}</span>
+                            <br>
+                            <small>₹${item.price.toFixed(2)} x ${item.quantity}</small>
+                        </div>
+                        <div class="invoice-item-actions">
+                            <button class="remove-btn" data-id="${item.id}" data-action="decrement">-</button>
+                            <button class="add-btn" data-id="${item.id}" data-action="increment">+</button>
+                        </div>
+                    `;
+                    invoiceItemsList.appendChild(li);
+                });
+                updateInvoiceTotal();
+            };
+
+            productsGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.product-card');
+                if (card) {
+                    const id = card.dataset.id;
+                    const product = products.find(p => p.id === id);
+                    if (product) {
+                        const existingItem = currentInvoice.find(item => item.id === id);
+                        if (existingItem) {
+                            existingItem.quantity++;
+                        } else {
+                            currentInvoice.push({ ...product, quantity: 1 });
+                        }
+                        renderInvoiceItems();
+                    }
+                }
+            });
+
+            invoiceItemsList.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (button) {
+                    const id = button.dataset.id;
+                    const action = button.dataset.action;
+                    const item = currentInvoice.find(i => i.id === id);
+                    if (item) {
+                        if (action === 'increment') {
+                            item.quantity++;
+                        } else if (action === 'decrement') {
+                            if (item.quantity > 1) {
+                                item.quantity--;
+                            } else {
+                                currentInvoice = currentInvoice.filter(i => i.id !== id);
+                            }
+                        }
+                        renderInvoiceItems();
+                    }
+                }
+            });
+            
+            const resetInvoice = () => {
+                currentInvoice = [];
+                renderInvoiceItems();
+                showPopupMessage('Invoice reset.');
+            };
+
+            const generateInvoiceNumber = () => {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                
+                const lastInvoice = invoices.filter(inv => inv.date.startsWith(`${year}-${month}`))
+                    .sort((a, b) => b.invoiceNumber.slice(-4) - a.invoiceNumber.slice(-4))[0];
+                
+                let nextNumber = 1;
+                if (lastInvoice) {
+                    const lastNumber = parseInt(lastInvoice.invoiceNumber.slice(-4));
+                    if (!isNaN(lastNumber)) {
+                         nextNumber = lastNumber + 1;
+                    }
+                }
+                const paddedNumber = String(nextNumber).padStart(4, '0');
+                return `${year}${month}${paddedNumber}`;
+            };
+            
+            const saveAndPrint = (paymentMode, total, cashAmount = 0, onlineAmount = 0) => {
+                if (currentInvoice.length === 0) {
+                    showPopupMessage('Invoice is empty!');
+                    return;
+                }
+                
+                const newInvoiceRef = database.ref().child('invoices').push();
+                const invoiceNumber = generateInvoiceNumber();
+                const newInvoice = {
+                    id: newInvoiceRef.key,
+                    invoiceNumber: invoiceNumber,
+                    date: new Date().toISOString(),
+                    items: currentInvoice,
+                    total: total,
+                    paymentMode: paymentMode,
+                    cashAmount: cashAmount,
+                    onlineAmount: onlineAmount
+                };
+                
+                newInvoiceRef.set(newInvoice)
+                    .then(() => {
+                        updateDashboard();
+                        const printContent = `
+                            <style>
+                                body { font-family: 'Poppins', sans-serif; }
+                                .invoice-receipt { width: 300px; margin: auto; padding: 20px; border: 1px dashed #333; }
+                                h2 { text-align: center; margin-bottom: 5px; }
+                                .item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                                .total { margin-top: 15px; font-weight: bold; border-top: 1px dashed #333; padding-top: 10px; }
+                                .payment-details { margin-top: 10px; font-size: 0.9em; }
+                                .footer { text-align: center; margin-top: 20px; }
+                                @media print {
+                                    body { background: none; }
+                                }
+                            </style>
+                            <div class="invoice-receipt">
+                                <h2>Mapple's Cafe</h2>
+                                <p style="text-align: center;"><strong>Invoice No:</strong> ${invoiceNumber}</p>
+                                <p style="text-align: center; border-bottom: 1px dashed #333; padding-bottom: 10px;">Date: ${new Date().toLocaleString()}</p>
+                                ${currentInvoice.map(item => `
+                                    <div class="receipt-item">
+                                        <span>${item.name} x ${item.quantity}</span>
+                                        <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                `).join('')}
+                                <div class="receipt-total">
+                                    <span>Total:</span>
+                                    <span>₹${total.toFixed(2)}</span>
+                                </div>
+                                <div class="payment-details">
+                                    <p><strong>Payment Mode:</strong> ${paymentMode}</p>
+                                    ${cashAmount > 0 ? `<p>Cash: ₹${cashAmount.toFixed(2)}</p>` : ''}
+                                    ${onlineAmount > 0 ? `<p>Online: ₹${onlineAmount.toFixed(2)}</p>` : ''}
+                                </div>
+                                <div class="footer">
+                                    <p>Thank you for your visit!</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Create a temporary iframe for printing
+                        const printFrame = document.createElement('iframe');
+                        printFrame.style.display = 'none';
+                        document.body.appendChild(printFrame);
+                        
+                        const printDoc = printFrame.contentWindow.document;
+                        printDoc.open();
+                        printDoc.write(printContent);
+                        printDoc.close();
+                        
+                        printFrame.contentWindow.onload = () => {
+                            printFrame.contentWindow.print();
+                            // Clean up the iframe after printing is done
+                            setTimeout(() => {
+                                document.body.removeChild(printFrame);
+                            }, 500); 
+                        };
+
+                        resetInvoice();
+                    })
+                    .catch(error => console.error("Error saving invoice:", error));
+            };
+
+
+            // Payment Buttons
+            document.getElementById('cash-pay-btn').addEventListener('click', () => {
+                const total = updateInvoiceTotal();
+                if (total === 0) {
+                    showPopupMessage('Invoice is empty!');
+                    return;
+                }
+                saveAndPrint('Cash', total, total, 0);
+            });
+
+            document.getElementById('online-pay-btn').addEventListener('click', () => {
+                const total = updateInvoiceTotal();
+                if (total === 0) {
+                    showPopupMessage('Invoice is empty!');
+                    return;
+                }
+                saveAndPrint('Online', total, 0, total);
+            });
+
+            document.getElementById('split-pay-btn').addEventListener('click', () => {
+                const total = updateInvoiceTotal();
+                if (total === 0) {
+                    showPopupMessage('Invoice is empty!');
+                    return;
+                }
+                splitTotalAmountSpan.textContent = `₹${total.toFixed(2)}`;
+                splitCashAmountInput.value = '';
+                splitOnlineAmountInput.value = '';
+                splitPayModal.style.display = 'flex';
+            });
+            
+            splitPayModal.querySelector('.close-btn').addEventListener('click', () => splitPayModal.style.display = 'none');
+            splitPayModal.querySelector('.cancel-btn').addEventListener('click', () => splitPayModal.style.display = 'none');
+            
+            const updateSplitAmounts = () => {
+                const total = updateInvoiceTotal();
+                const cash = parseFloat(splitCashAmountInput.value) || 0;
+                const online = parseFloat(splitOnlineAmountInput.value) || 0;
+                
+                if (document.activeElement === splitCashAmountInput) {
+                    const remaining = total - cash;
+                    splitOnlineAmountInput.value = remaining > 0 ? remaining.toFixed(2) : '';
+                } else if (document.activeElement === splitOnlineAmountInput) {
+                    const remaining = total - online;
+                    splitCashAmountInput.value = remaining > 0 ? remaining.toFixed(2) : '';
+                }
+            };
+
+            splitCashAmountInput.addEventListener('input', updateSplitAmounts);
+            splitOnlineAmountInput.addEventListener('input', updateSplitAmounts);
+
+            splitPayForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const total = updateInvoiceTotal();
+                const cashAmount = parseFloat(splitCashAmountInput.value) || 0;
+                const onlineAmount = parseFloat(splitOnlineAmountInput.value) || 0;
+                
+                if ((cashAmount + onlineAmount).toFixed(2) !== total.toFixed(2)) {
+                    showPopupMessage(`Combined payment amount does not match the total. Total: ₹${total.toFixed(2)}`);
+                    return;
+                }
+                
+                saveAndPrint('Split', total, cashAmount, onlineAmount);
+                splitPayModal.style.display = 'none';
+            });
+
+            document.getElementById('reset-invoice-btn').addEventListener('click', resetInvoice);
+
+
+
+	    // -------------------- Admin Management --------------------
+let admins = [];
+
+const adminsTableBody = document.querySelector('#admins-table tbody');
+const adminModal = document.getElementById('admin-modal');
+const adminModalTitle = document.getElementById('admin-modal-title');
+const adminForm = document.getElementById('admin-form');
+const adminIdInput = document.getElementById('admin-id');
+const adminNameInput = document.getElementById('admin-name');
+const adminEmailInput = document.getElementById('admin-email');
+const adminPasswordInput = document.getElementById('admin-password');
+const addAdminBtn = document.getElementById('addAdminBtn');
+
+// Render Admins Table
+const renderAdminsTable = () => {
+  adminsTableBody.innerHTML = '';
+  admins.forEach(admin => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${admin.id}</td>
+      <td>${admin.name}</td>
+      <td>${admin.email}</td>
+      <td>${admin.password ? "••••••" : ""}</td>
+      <td>
+        <button class="btn btn-info edit-admin-btn" data-id="${admin.id}">Edit</button>
+        <button class="btn btn-danger delete-admin-btn" data-id="${admin.id}">Delete</button>
+      </td>
+    `;
+    adminsTableBody.appendChild(row);
+  });
+};
+
+// Firebase listener → Load admins
+database.ref('admins').on('value', snapshot => {
+  admins = [];
+  snapshot.forEach(childSnap => {
+    admins.push(childSnap.val());
+  });
+  renderAdminsTable();
+});
+
+// Open Add Admin modal
+addAdminBtn.addEventListener('click', () => {
+  adminModalTitle.textContent = "Add Admin";
+  adminIdInput.value = "";
+  adminNameInput.value = "";
+  adminEmailInput.value = "";
+  adminPasswordInput.value = "";
+  adminModal.style.display = "flex";
+});
+
+// Generate Next Admin ID (MCADMIN format)
+const generateAdminId = () => {
+  let maxNum = 0;
+  admins.forEach(admin => {
+    const num = parseInt(admin.id.replace("MCADMIN", ""));
+    if (!isNaN(num) && num > maxNum) {
+      maxNum = num;
+    }
+  });
+  return "MCADMIN" + String(maxNum + 1).padStart(3, "0"); // MCADMIN001, MCADMIN002...
+};
+
+// Save Admin (Add/Edit)
+adminForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  let id = adminIdInput.value;
+
+  // If no ID, generate new
+  if (!id) {
+    id = generateAdminId();
+  }
+
+  const newAdmin = {
+    id,
+    name: adminNameInput.value,
+    email: adminEmailInput.value,
+    password: adminPasswordInput.value
+  };
+
+  await database.ref('admins/' + id).set(newAdmin);
+  adminModal.style.display = "none";
+});
+
+// Edit/Delete buttons
+adminsTableBody.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const id = btn.dataset.id;
+
+  if (btn.classList.contains('edit-admin-btn')) {
+    const admin = admins.find(a => a.id === id);
+    if (admin) {
+      adminModalTitle.textContent = "Edit Admin";
+      adminIdInput.value = admin.id;
+      adminNameInput.value = admin.name;
+      adminEmailInput.value = admin.email;
+      adminPasswordInput.value = admin.password;
+      adminModal.style.display = "flex";
+    }
+  } else if (btn.classList.contains('delete-admin-btn')) {
+    if (confirm("Delete this admin?")) {
+      await database.ref('admins/' + id).remove();
+    }
+  }
+});
+
+// Close modal (X and Cancel)
+adminModal.querySelector('.close-btn').addEventListener('click', () => adminModal.style.display = 'none');
+adminModal.querySelector('.cancel-btn').addEventListener('click', () => adminModal.style.display = 'none');
+
+
+
+            // Sales View
+            const salesDetailsModal = document.getElementById('sales-details-modal');
+            const receiptDetails = document.getElementById('receipt-details');
+
+            const renderSalesHistory = () => {
+                salesTableBody.innerHTML = '';
+                invoices.forEach(invoice => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>#${invoice.invoiceNumber}</td>
+                        <td>${new Date(invoice.date).toLocaleString()}</td>
+                        <td>₹${invoice.total.toFixed(2)}</td>
+                        <td>${invoice.paymentMode}</td>
+                        <td><a href="#" class="view-details-btn" data-id="${invoice.id}">View Details</a></td>
+                    `;
+                    salesTableBody.appendChild(row);
+                });
+            };
+            
+            salesTableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('view-details-btn')) {
+                    e.preventDefault();
+                    const invoiceId = e.target.dataset.id;
+                    const invoice = invoices.find(inv => inv.id === invoiceId);
+                    if (invoice) {
+                        let detailsHtml = `
+                            <p><strong>Invoice ID:</strong> #${invoice.invoiceNumber}</p>
+                            <p><strong>Date:</strong> ${new Date(invoice.date).toLocaleString()}</p>
+                            <p><strong>Payment Mode:</strong> ${invoice.paymentMode}</p>
+                            <hr style="margin: 10px 0;">
+                            <p><strong>Items:</strong></p>
+                            ${invoice.items.map(item => `
+                                <div class="receipt-item">
+                                    <span>${item.name} x ${item.quantity}</span>
+                                    <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="receipt-total">
+                                <span>Total:</span>
+                                <span>₹${invoice.total.toFixed(2)}</span>
+                            </div>
+                        `;
+                        receiptDetails.innerHTML = detailsHtml;
+                        salesDetailsModal.style.display = 'flex';
+                    }
+                }
+            });
+
+            salesDetailsModal.querySelector('.close-btn').addEventListener('click', () => {
+                salesDetailsModal.style.display = 'none';
+            });
+
+            const stockModal = document.getElementById('stock-modal');
+            const stockForm = document.getElementById('stock-form');
+            const stockModalTitle = document.getElementById('stock-modal-title');
+            const stockIdInput = document.getElementById('stock-id');
+            const stockNameInput = document.getElementById('stock-name');
+            const stockUnitInput = document.getElementById('stock-unit');
+            const stockQuantityInput = document.getElementById('stock-quantity');
+            const selectAllStockCheckbox = document.getElementById('select-all-stock');
+
+            const renderStockTable = () => {
+                stockTableBody.innerHTML = '';
+                stock.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="stock-checkbox" data-id="${item.id}"></td>
+                        <td>${item.stockNumber}</td>
+                        <td>${item.name}</td>
+                        <td>${item.unit}</td>
+                        <td>${item.quantity}</td>
+                        <td class="stock-actions">
+                            <div class="quantity-controls">
+                                <input type="number" class="quantity-input" value="1" min="1">
+                                <button class="btn btn-success" data-id="${item.id}" data-action="increment">IN</button>
+                                <button class="btn btn-warning" data-id="${item.id}" data-action="decrement">OUT</button>
+                            </div>
+                            <div class="stock-buttons">
+                                <button class="btn btn-info" data-id="${item.id}">Edit</button>
+                                <button class="btn btn-danger" data-id="${item.id}">Delete</button>
+                            </div>
+                        </td>
+                    `;
+                    stockTableBody.appendChild(row);
+                });
+            };
+            
+            const generateStockNumber = () => {
+                const maxStockNumber = stock.reduce((max, item) => Math.max(max, item.stockNumber || 0), 0);
+                return maxStockNumber + 1;
+            };
+
+            stockForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = stockIdInput.value;
+                const name = stockNameInput.value.trim();
+                const unit = stockUnitInput.value.trim();
+                const quantity = parseInt(stockQuantityInput.value);
+
+                if (id) {
+                    const item = stock.find(i => i.id === id);
+                    database.ref('stock/' + id).update({ name, unit, quantity, stockNumber: item.stockNumber })
+                        .then(() => showPopupMessage('Stock item updated successfully!'))
+                        .catch(error => console.error("Error updating stock item:", error));
+                } else {
+                    const newId = database.ref().child('stock').push().key;
+                    const stockNumber = generateStockNumber();
+                    database.ref('stock/' + newId).set({ id: newId, stockNumber: stockNumber, name, unit, quantity })
+                        .then(() => showPopupMessage('Stock item added successfully!'))
+                        .catch(error => console.error("Error adding stock item:", error));
+                }
+                stockModal.style.display = 'none';
+            });
+
+            stockTableBody.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                const item = stock.find(i => i.id === id);
+
+                if (e.target.classList.contains('btn-info')) { // Edit button
+                    if (item) {
+                        stockModalTitle.textContent = 'Edit Stock Item';
+                        stockIdInput.value = item.id;
+                        stockNameInput.value = item.name;
+                        stockUnitInput.value = item.unit;
+                        stockQuantityInput.value = item.quantity;
+                        stockModal.style.display = 'flex';
+                    }
+                } else if (e.target.classList.contains('btn-danger')) { // Delete button
+                    if (confirm('Are you sure you want to delete this stock item?')) {
+                        database.ref('stock/' + id).remove()
+                            .then(() => showPopupMessage('Stock item deleted successfully!'))
+                            .catch(error => console.error("Error deleting stock item:", error));
+                    }
+                } else if (e.target.dataset.action === 'increment') { // IN button
+                    const row = e.target.closest('tr');
+                    const quantityInput = row.querySelector('.quantity-input');
+                    const value = parseInt(quantityInput.value);
+
+                    if (item && !isNaN(value) && value > 0) {
+                        database.ref('stock/' + id + '/quantity').transaction(currentQuantity => {
+                            return (currentQuantity || 0) + value;
+                        })
+                        .then(() => showPopupMessage(`Added ${value} unit(s) to ${item.name}.`))
+                        .catch(error => console.error("Error updating stock quantity:", error));
+                    } else {
+                        showPopupMessage('Please enter a valid number greater than 0.');
+                    }
+                } else if (e.target.dataset.action === 'decrement') { // OUT button
+                    const row = e.target.closest('tr');
+                    const quantityInput = row.querySelector('.quantity-input');
+                    const value = parseInt(quantityInput.value);
+
+                    if (item && !isNaN(value) && value > 0) {
+                        database.ref('stock/' + id + '/quantity').transaction(currentQuantity => {
+                            if ((currentQuantity || 0) >= value) {
+                                return currentQuantity - value;
+                            } else {
+                                showPopupMessage('Cannot decrement stock below zero.');
+                                return; // Abort the transaction
+                            }
+                        })
+                        .then(() => showPopupMessage(`Used ${value} unit(s) of ${item.name}.`))
+                        .catch(error => console.error("Error updating stock quantity:", error));
+                    } else {
+                        showPopupMessage('Please enter a valid number greater than 0.');
+                    }
+                }
+            });
+
+            document.getElementById('addStockBtn').addEventListener('click', () => {
+                stockModalTitle.textContent = 'Add Stock Item';
+                stockForm.reset();
+                stockIdInput.value = '';
+                stockModal.style.display = 'flex';
+            });
+
+            stockModal.querySelector('.close-btn').addEventListener('click', () => stockModal.style.display = 'none');
+            stockModal.querySelector('.cancel-btn').addEventListener('click', () => stockModal.style.display = 'none');
+
+            selectAllStockCheckbox.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+
+            document.getElementById('deleteSelectedStockBtn').addEventListener('click', () => {
+                const selectedIds = Array.from(document.querySelectorAll('.stock-checkbox:checked')).map(cb => cb.dataset.id);
+                if (selectedIds.length === 0) {
+                    showPopupMessage('No stock items selected for deletion.');
+                    return;
+                }
+                if (confirm(`Are you sure you want to delete ${selectedIds.length} selected item(s)?`)) {
+                    const updates = {};
+                    selectedIds.forEach(id => {
+                        updates['stock/' + id] = null;
+                    });
+                    database.ref().update(updates)
+                        .then(() => showPopupMessage(`${selectedIds.length} item(s) deleted successfully!`))
+                        .catch(error => console.error("Error deleting selected stock items:", error));
+                }
+            });
+
+            document.getElementById('clearAllStockBtn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear ALL stock data? This action cannot be undone.')) {
+                    database.ref('stock').remove()
+                        .then(() => showPopupMessage('All stock data cleared successfully!'))
+                        .catch(error => console.error("Error clearing stock data:", error));
+                }
+            });
+            
+            // NEW: Stock CSV Import/Export
+            document.getElementById('importStockCsvBtn').addEventListener('click', () => {
+                document.getElementById('importStockCsvInput').click();
+            });
+
+            document.getElementById('importStockCsvInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const text = event.target.result;
+                        const lines = text.split('\n').filter(line => line.trim() !== '');
+                        let updates = {};
+                        lines.slice(1).forEach(line => { // Skip header row
+                            const [id, name, unit, quantity] = line.split(',');
+                            if (name && unit && quantity) {
+                                const newId = database.ref().child('stock').push().key;
+                                updates['stock/' + newId] = { id: newId, name: name.trim(), unit: unit.trim(), quantity: parseInt(quantity) };
+                            }
+                        });
+                        if (Object.keys(updates).length > 0) {
+                            database.ref().update(updates)
+                                .then(() => showPopupMessage('Stock imported successfully!'))
+                                .catch(error => console.error("Error importing stock:", error));
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            document.getElementById('exportStockCsvBtn').addEventListener('click', () => {
+                const csvHeader = ['ID', 'Item Name', 'Unit', 'Quantity'];
+                const csvData = stock.map(i => [i.id, i.name, i.unit, i.quantity]);
+                const csvContent = "data:text/csv;charset=utf-8," +
+                                   csvHeader.join(',') + '\n' +
+                                   csvData.map(row => row.join(',')).join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', 'stock.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showPopupMessage('Stock exported to CSV!');
+            });
+            
+            // New Employee Management
+const employeeModal = document.getElementById('employee-modal');
+const employeeForm = document.getElementById('employee-form');
+const employeeModalTitle = document.getElementById('employee-modal-title');
+const employeeNameInput = document.getElementById('employee-name');
+const employeePhoneInput = document.getElementById('employee-phone');
+const employeeAddressInput = document.getElementById('employee-address');
+const employeeWorkTypeInput = document.getElementById('employee-work-type');
+const employeeEmailInput = document.getElementById('employee-email');
+const employeeDobInput = document.getElementById('employee-dob');
+const employeeDBIdInput = document.getElementById('employee-db-id');
+const employeeSalaryInput = document.getElementById('employee-salary'); // ✅ new salary field
+
+const renderEmployeesTable = () => {
+    employeesTableBody.innerHTML = '';
+    employees.forEach(emp => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${emp.empId}</td>
+            <td>${new Date(emp.dateHired).toLocaleDateString()}</td>
+            <td>${emp.name}</td>
+            <td>${emp.phone}</td>
+            <td>${emp.address}</td>
+            <td>${emp.workType}</td>
+            <td>₹${emp.salaryPerHour ? emp.salaryPerHour.toFixed(2) : '0.00'}</td>
+            <td>${emp.email}</td>
+            <td>
+                <button class="btn btn-info edit-employee-btn" data-id="${emp.id}">Edit</button>
+                <button class="btn btn-danger delete-employee-btn" data-id="${emp.id}" data-uid="${emp.uid}">Delete</button>
+            </td>
+        `;
+        employeesTableBody.appendChild(row);
+    });
+};
+
+const generateRandomLetters = (length) => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+};
+
+const generateEmployeeId = () => {
+    const lastEmployee = employees.sort((a, b) => {
+        const numA = parseInt(a.empId.substring(a.empId.length - 3));
+        const numB = parseInt(b.empId.substring(b.empId.length - 3));
+        return numB - numA;
+    })[0];
+    
+    let nextNumber = 1;
+    if (lastEmployee) {
+        const lastNumber = parseInt(lastEmployee.empId.substring(lastEmployee.empId.length - 3));
+        if (!isNaN(lastNumber)) {
+             nextNumber = lastNumber + 1;
+        }
+    }
+    const paddedNumber = String(nextNumber).padStart(3, '0');
+    const randomLetters = generateRandomLetters(4);
+    return `MC${randomLetters}${paddedNumber}`;
+};
+
+document.getElementById('addEmployeeBtn').addEventListener('click', () => {
+    employeeModalTitle.textContent = 'Add Employee';
+    employeeForm.reset();
+    employeeDBIdInput.value = '';
+    employeeDobInput.style.display = 'block';
+    employeeDobInput.required = true;
+    employeeModal.style.display = 'flex';
+});
+
+employeeModal.querySelector('.close-btn').addEventListener('click', () => employeeModal.style.display = 'none');
+document.getElementById('employee-cancel-btn').addEventListener('click', () => employeeModal.style.display = 'none');
+
+employeeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = employeeDBIdInput.value;
+    const name = employeeNameInput.value.trim();
+    const phone = employeePhoneInput.value.trim();
+    const address = employeeAddressInput.value.trim();
+    const workType = employeeWorkTypeInput.value;
+    const email = employeeEmailInput.value.trim();
+    const dob = employeeDobInput.value;
+    const salaryPerHour = parseFloat(employeeSalaryInput.value) || 0; // ✅ salary
+
+    try {
+        if (id) {
+            await database.ref('employees/' + id).update({ 
+                name, phone, address, workType, salaryPerHour 
+            });
+            showPopupMessage('Employee updated successfully!');
+        } else {
+            // WARNING: Firebase Auth requires a password, here dob is used for demo
+            const userCredential = await auth.createUserWithEmailAndPassword(email, dob);
+            const uid = userCredential.user.uid;
+            const empId = generateEmployeeId();
+            const newEmployee = {
+                id: uid,
+                empId,
+                dateHired: new Date().toISOString(),
+                name,
+                phone,
+                address,
+                workType,
+                email,
+                dob,
+                salaryPerHour // ✅ store in DB
+            };
+            await database.ref('employees/' + uid).set(newEmployee);
+            showPopupMessage('Employee added successfully!');
+        }
+        employeeModal.style.display = 'none';
+    } catch (error) {
+        showPopupMessage('Error: ' + error.message);
+        console.error("Error adding/updating employee:", error);
+    }
+});
+
+employeesTableBody.addEventListener('click', async (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    const id = button.dataset.id;
+    const uid = button.dataset.uid;
+    const employee = employees.find(emp => emp.id === id);
+
+    if (button.classList.contains('edit-employee-btn')) {
+        if (employee) {
+            employeeModalTitle.textContent = 'Edit Employee';
+            employeeDBIdInput.value = employee.id;
+            employeeNameInput.value = employee.name;
+            employeePhoneInput.value = employee.phone;
+            employeeAddressInput.value = employee.address;
+            employeeWorkTypeInput.value = employee.workType;
+            employeeEmailInput.value = employee.email;
+            employeeSalaryInput.value = employee.salaryPerHour || 0; // ✅ prefill salary
+            employeeDobInput.style.display = 'none';
+            employeeDobInput.required = false;
+            employeeModal.style.display = 'flex';
+        }
+    } else if (button.classList.contains('delete-employee-btn')) {
+        if (confirm('Are you sure you want to delete this employee? This action is irreversible.')) {
+            try {
+                await database.ref('employees/' + id).remove();
+                showPopupMessage('Employee deleted successfully!');
+            } catch (error) {
+                showPopupMessage('Error: ' + error.message);
+                console.error("Error deleting employee:", error);
+            }
+        }
+    }
+});
+
+            
+            // === Attendance Logic ===
+const qrCodeDiv = document.getElementById('qr-code');
+const generateQrBtn = document.getElementById('generateQrBtn');
+const deleteQrBtn = document.getElementById('deleteQrBtn'); // NEW
+let qrCodeInstance = null;
+
+const generateUniqueId = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    const randomPart = Math.random().toString(36).substring(2, 15);
+    return `${date}-${randomPart}`;
+};
+
+// ✅ Restore QR on page load (instead of deleting)
+window.addEventListener("load", () => {
+    database.ref('qr_codes').limitToLast(1).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+            const qrData = Object.values(snapshot.val())[0];
+            const attendanceId = qrData.attendanceId; // Extract attendanceId
+            qrCodeDiv.innerHTML = '';
+            qrCodeInstance = new QRCode(qrCodeDiv, {
+                text: attendanceId, // MODIFIED: Use attendanceId directly
+                width: 100,
+                height: 100
+            });
+            console.log("Restored QR:", attendanceId);
+        }
+    });
+});
+
+// ✅ Generate new QR code
+generateQrBtn.addEventListener('click', () => {
+    const uniqueId = generateUniqueId();
+    const qrData = {
+        date: new Date().toISOString().slice(0, 10),
+        attendanceId: uniqueId
+    };
+
+    qrCodeDiv.innerHTML = '';
+    qrCodeInstance = new QRCode(qrCodeDiv, {
+        text: uniqueId, // MODIFIED: Use uniqueId (which is attendanceId) directly
+        width: 100,
+        height: 100
+    });
+
+    database.ref('qr_codes/' + uniqueId).set({
+        ...qrData,
+        generatedBy: 'System'
+    }).then(() => {
+        showPopupMessage('QR Code generated successfully!');
+    }).catch(error => {
+        console.error("Error saving QR code data:", error);
+        showPopupMessage('Error generating QR code.');
+    });
+});
+
+// ✅ Delete QR manually
+deleteQrBtn.addEventListener('click', () => {
+    qrCodeDiv.innerHTML = '';
+    // Clear the QR code instance display if it exists
+    if (qrCodeInstance) {
+        qrCodeInstance.clear();
+        qrCodeDiv.innerHTML = 'Click "Generate QR"'; // Add placeholder text
+    }
+    database.ref('qr_codes').remove()
+        .then(() => showPopupMessage('QR Code deleted!'))
+        .catch(error => console.error("Error deleting QR codes:", error));
+});
+
+
+
+            // This is a placeholder for the scanning mechanism
+            // For a real-world app, you'd need a mobile scanner app
+            const handleCheckInOrOut = (scannedData) => {
+                try {
+                    const data = JSON.parse(scannedData);
+                    const employeeId = data.employeeId;
+                    const emp = employees.find(e => e.id === employeeId);
+                    if (!emp) {
+                        showPopupMessage('Employee not found!');
+                        return;
+                    }
+
+                    const today = new Date().toISOString().slice(0, 10);
+                    const attendanceRef = database.ref('attendance');
+                    let existingEntry = attendance.find(entry => entry.date === today && entry.employeeId === employeeId);
+
+                    if (existingEntry) {
+                        // Check Out
+                        if (existingEntry.outTime) {
+                            showPopupMessage('Already checked out for today.');
+                            return;
+                        }
+                        const outTime = new Date().toISOString();
+                        const inTime = new Date(existingEntry.inTime);
+                        const totalHours = ((new Date(outTime) - inTime) / (1000 * 60 * 60)).toFixed(2);
+                        database.ref('attendance/' + existingEntry.id).update({ outTime, totalHours })
+                            .then(() => showPopupMessage(`${emp.name} checked OUT successfully!`));
+                    } else {
+                        // Check In
+                        const inTime = new Date().toISOString();
+                        const newAttendanceRef = attendanceRef.push();
+                        newAttendanceRef.set({
+                            id: newAttendanceRef.key,
+                            date: today,
+                            employeeId: employeeId,
+                            employeeName: emp.name,
+                            employeeEmpId: emp.empId,
+                            inTime,
+                            outTime: null,
+                            totalHours: 0
+                        }).then(() => showPopupMessage(`${emp.name} checked IN successfully!`));
+                    }
+                } catch (e) {
+                    console.error("Invalid QR code data:", e);
+                    showPopupMessage('Invalid QR code data.');
+                }
+            };
+            
+            const renderAttendanceTable = () => {
+    attendanceTableBody.innerHTML = '';
+
+    // Sort by date (latest first)
+    attendance.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(entry => {
+        // Find employee info
+        const emp = employees.find(e =>
+            (e.empId && entry.employeeEmpId && e.empId === entry.employeeEmpId) ||
+            (e.id && entry.employeeId && e.id === entry.employeeId)
+        );
+
+        // IN/OUT times
+        const inTimeObj = entry.inTime ? new Date(entry.inTime) : null;
+        const outTimeObj = entry.outTime ? new Date(entry.outTime) : null;
+        const inTime = inTimeObj ? inTimeObj.toLocaleTimeString() : 'N/A';
+        const outTime = outTimeObj ? outTimeObj.toLocaleTimeString() : 'N/A';
+
+        // Duration (HH:MM:SS) + hours worked
+        let durationStr = entry.totalDuration || '0';
+        let hoursWorked = 0;
+        if (inTimeObj && outTimeObj) {
+            const diffMs = outTimeObj - inTimeObj;
+            hoursWorked = diffMs / (1000 * 60 * 60); // ms → hrs
+            const h = Math.floor(hoursWorked);
+            const m = Math.floor((hoursWorked - h) * 60);
+            const s = Math.floor((diffMs / 1000) % 60);
+            durationStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // Daily Salary
+        const hourlyRate = emp ? (emp.salaryPerHour || 0) : 0;
+        const dailySalary = hoursWorked * hourlyRate;
+
+        // Create row
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${entry.date}</td>
+            <td>${entry.employeeEmpId || '--'}</td>
+            <td>${entry.employeeName || (emp ? emp.name : '--')}</td>
+            <td>${inTime}</td>
+            <td>${outTime}</td>
+            <td>${durationStr}</td>
+            <td>₹${dailySalary.toFixed(2)}</td>
+        `;
+        attendanceTableBody.appendChild(row);
+    });
+
+    if (!attendance.length) {
+        attendanceTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No attendance records found</td></tr>`;
+    }
+};
+
+
+	   
+
+            // Firebase Data Listeners
+            database.ref('products').on('value', (snapshot) => {
+                products = [];
+                snapshot.forEach(childSnapshot => {
+                    products.push(childSnapshot.val());
+                });
+                renderProductsTable();
+                renderProductCards();
+                updateDashboard();
+            });
+
+            database.ref('invoices').on('value', (snapshot) => {
+                invoices = [];
+                snapshot.forEach(childSnapshot => {
+                    invoices.push(childSnapshot.val());
+                });
+                renderSalesHistory();
+                updateDashboard();
+            });
+
+            database.ref('stock').on('value', (snapshot) => {
+                stock = [];
+                snapshot.forEach(childSnapshot => {
+                    stock.push(childSnapshot.val());
+                });
+                renderStockTable();
+            });
+
+            database.ref('employees').on('value', (snapshot) => {
+                employees = [];
+                snapshot.forEach(childSnapshot => {
+                    employees.push(childSnapshot.val());
+                });
+                renderEmployeesTable();
+            });
+
+            database.ref('attendance').on('value', (snapshot) => {
+                attendance = [];
+                snapshot.forEach(childSnapshot => {
+                    attendance.push(childSnapshot.val());
+                });
+                renderAttendanceTable();
+            });
+
+	    // New listener for employee data
+            database.ref('employees').on('value', (snapshot) => {
+                employees = [];
+                snapshot.forEach(childSnapshot => {
+                    employees.push(childSnapshot.val());
+                });
+                renderOrdersTable(searchInput.value, dateInput.value);
+            });
+
+
+            // Initial render
+            switchSection('dashboard-section');
+        });
+    
+        document.addEventListener('DOMContentLoaded', () => {
+        const loginModal = document.getElementById('login-modal');
+        const loginForm = document.getElementById('login-form');
+        const sidebarMenu = document.querySelector('.sidebar-menu');
+
+        const showLogin = () => loginModal.style.display = 'flex';
+        const hideLogin = () => loginModal.style.display = 'none';
+
+        const addLogoutButton = (adminName) => {
+            if (!document.getElementById('logout-btn')) {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" id="logout-btn">Logout (${adminName || "Admin"})</a>`;
+                sidebarMenu.appendChild(li);
+                document.getElementById('logout-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem("loggedInAdmin");
+                    showLogin();
+                    li.remove();
+                });
+            }
+        };
+
+        // 🔹 Check session on load
+        const savedAdmin = localStorage.getItem("loggedInAdmin");
+        if (savedAdmin) {
+            hideLogin();
+            addLogoutButton(savedAdmin);
+        } else {
+            showLogin();
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+
+            firebase.database().ref("admins").once("value")
+                .then(snapshot => {
+                    let foundAdmin = null;
+
+                    snapshot.forEach(adminSnap => {
+                        const admin = adminSnap.val();
+                        if (admin.email === email) {
+                            foundAdmin = admin;
+                        }
+                    });
+
+                    if (foundAdmin) {
+                        // ✅ Save to localStorage
+                        localStorage.setItem("loggedInAdmin", foundAdmin.name || "Admin");
+
+                        hideLogin();
+                        addLogoutButton(foundAdmin.name);
+                    } else {
+                        alert("Unauthorized: Email not in admins list!");
+                    }
+                })
+                .catch(error => {
+                    console.error("Login error:", error);
+                    alert("Login failed, check console.");
+                });
+        });
+    });
+</script>
+
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h3>Admin Login</h3>
+            <form id="login-form">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" required>
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" required>
+                <div class="modal-actions">
+                    <button type="submit" class="save-btn">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
