@@ -741,7 +741,6 @@
         <ul class="sidebar-menu">
             <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
             <li><a href="#" data-section="products">Products</a></li>
-            <li><a href="order.html">Orders</a></li>
 	    <li><a href="#" data-section="sales">Sales</a></li>
             <li><a href="#" data-section="stock">Stock</a></li>
 	    <li><a href="#" data-section="salary">Salary</a></li>
@@ -868,6 +867,7 @@
           <th>Name</th>
           <th>Email</th>
           <th>Password</th>
+          <th>UPI ID</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -875,6 +875,43 @@
     </table>
   </div>
 </div>
+
+<!-- ===== Admin Modal ===== -->
+<div id="admin-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h3 id="admin-modal-title">Add Admin</h3>
+    <form id="admin-form">
+      <input type="hidden" id="admin-id">
+      
+      <div class="form-group">
+        <label for="admin-name">Name</label>
+        <input type="text" id="admin-name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="admin-email">Email</label>
+        <input type="email" id="admin-email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="admin-password">Password</label>
+        <input type="password" id="admin-password" required>
+      </div>
+
+      <div class="form-group">
+        <label for="admin-upi">UPI ID</label>
+        <input type="text" id="admin-upi" placeholder="example@upi">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 
         
         <div id="sales-section" class="content-section">
@@ -913,15 +950,19 @@
             <div class="table-container">
                 <table id="stock-table">
                     <thead>
-                        <tr>
-                            <th><input type="checkbox" id="select-all-stock"></th>
-                            <th>ID</th>
-                            <th>Item Name</th>
-                            <th>Unit</th>
-                            <th>Quantity</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+    <tr>
+        <th><input type="checkbox" id="select-all-stock"></th>
+        <th>ID</th>
+        <th>Item Name</th>
+        <th>Unit</th>
+        <th>Date (Old Qty)</th>
+        <th>Old Quantity</th>
+        <th>Date (New Qty)</th>
+        <th>New Quantity</th>
+        <th>Actions</th>
+    </tr>
+</thead>
+
                     <tbody>
                     </tbody>
                 </table>
@@ -2138,6 +2179,7 @@ const adminIdInput = document.getElementById('admin-id');
 const adminNameInput = document.getElementById('admin-name');
 const adminEmailInput = document.getElementById('admin-email');
 const adminPasswordInput = document.getElementById('admin-password');
+const adminUpiInput = document.getElementById('admin-upi');
 const addAdminBtn = document.getElementById('addAdminBtn');
 
 // Render Admins Table
@@ -2150,6 +2192,7 @@ const renderAdminsTable = () => {
       <td>${admin.name}</td>
       <td>${admin.email}</td>
       <td>${admin.password ? "••••••" : ""}</td>
+      <td>${admin.upi || '-'}</td>
       <td>
         <button class="btn btn-info edit-admin-btn" data-id="${admin.id}">Edit</button>
         <button class="btn btn-danger delete-admin-btn" data-id="${admin.id}">Delete</button>
@@ -2175,6 +2218,7 @@ addAdminBtn.addEventListener('click', () => {
   adminNameInput.value = "";
   adminEmailInput.value = "";
   adminPasswordInput.value = "";
+  adminUpiInput.value = "";
   adminModal.style.display = "flex";
 });
 
@@ -2202,9 +2246,10 @@ adminForm.addEventListener('submit', async (e) => {
 
   const newAdmin = {
     id,
-    name: adminNameInput.value,
-    email: adminEmailInput.value,
-    password: adminPasswordInput.value
+    name: adminNameInput.value.trim(),
+    email: adminEmailInput.value.trim(),
+    password: adminPasswordInput.value.trim(),
+    upi: adminUpiInput.value.trim() || null
   };
 
   await database.ref('admins/' + id).set(newAdmin);
@@ -2225,6 +2270,7 @@ adminsTableBody.addEventListener('click', async (e) => {
       adminNameInput.value = admin.name;
       adminEmailInput.value = admin.email;
       adminPasswordInput.value = admin.password;
+      adminUpiInput.value = admin.upi || "";
       adminModal.style.display = "flex";
     }
   } else if (btn.classList.contains('delete-admin-btn')) {
@@ -2237,6 +2283,7 @@ adminsTableBody.addEventListener('click', async (e) => {
 // Close modal (X and Cancel)
 adminModal.querySelector('.close-btn').addEventListener('click', () => adminModal.style.display = 'none');
 adminModal.querySelector('.cancel-btn').addEventListener('click', () => adminModal.style.display = 'none');
+
 
 
 
@@ -2293,209 +2340,257 @@ adminModal.querySelector('.cancel-btn').addEventListener('click', () => adminMod
             });
 
             const stockModal = document.getElementById('stock-modal');
-            const stockForm = document.getElementById('stock-form');
-            const stockModalTitle = document.getElementById('stock-modal-title');
-            const stockIdInput = document.getElementById('stock-id');
-            const stockNameInput = document.getElementById('stock-name');
-            const stockUnitInput = document.getElementById('stock-unit');
-            const stockQuantityInput = document.getElementById('stock-quantity');
-            const selectAllStockCheckbox = document.getElementById('select-all-stock');
+const stockForm = document.getElementById('stock-form');
+const stockModalTitle = document.getElementById('stock-modal-title');
+const stockIdInput = document.getElementById('stock-id');
+const stockNameInput = document.getElementById('stock-name');
+const stockUnitInput = document.getElementById('stock-unit');
+const stockQuantityInput = document.getElementById('stock-quantity');
+const selectAllStockCheckbox = document.getElementById('select-all-stock');
 
-            const renderStockTable = () => {
-                stockTableBody.innerHTML = '';
-                stock.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><input type="checkbox" class="stock-checkbox" data-id="${item.id}"></td>
-                        <td>${item.stockNumber}</td>
-                        <td>${item.name}</td>
-                        <td>${item.unit}</td>
-                        <td>${item.quantity}</td>
-                        <td class="stock-actions">
-                            <div class="quantity-controls">
-                                <input type="number" class="quantity-input" value="1" min="1">
-                                <button class="btn btn-success" data-id="${item.id}" data-action="increment">IN</button>
-                                <button class="btn btn-warning" data-id="${item.id}" data-action="decrement">OUT</button>
-                            </div>
-                            <div class="stock-buttons">
-                                <button class="btn btn-info" data-id="${item.id}">Edit</button>
-                                <button class="btn btn-danger" data-id="${item.id}">Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    stockTableBody.appendChild(row);
-                });
-            };
-            
-            const generateStockNumber = () => {
-                const maxStockNumber = stock.reduce((max, item) => Math.max(max, item.stockNumber || 0), 0);
-                return maxStockNumber + 1;
-            };
+const renderStockTable = () => {
+    stockTableBody.innerHTML = '';
+    stock.forEach((item, index) => { // index used for ID 1..N
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="checkbox" class="stock-checkbox" data-id="${item.id}"></td>
+            <td>${index + 1}</td> <!-- Auto-increment ID -->
+            <td>${item.name}</td>
+            <td>${item.unit}</td>
+            <td>${item.oldDate || '-'}</td>
+            <td>${item.oldQuantity ?? 0}</td>
+            <td>${item.newDate || '-'}</td>
+            <td>${item.newQuantity ?? 0}</td>
+            <td class="stock-actions">
+                <div class="quantity-controls">
+                    <input type="number" class="quantity-input" value="1" min="1">
+                    <button class="btn btn-success" data-id="${item.id}" data-action="increment">IN</button>
+                    <button class="btn btn-warning" data-id="${item.id}" data-action="decrement">OUT</button>
+                </div>
+                <div class="stock-buttons">
+                    <button class="btn btn-info" data-id="${item.id}">Edit</button>
+                    <button class="btn btn-danger" data-id="${item.id}">Delete</button>
+                </div>
+            </td>
+        `;
+        stockTableBody.appendChild(row);
+    });
+};
 
-            stockForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const id = stockIdInput.value;
-                const name = stockNameInput.value.trim();
-                const unit = stockUnitInput.value.trim();
-                const quantity = parseInt(stockQuantityInput.value);
+// 🟢 Add/Edit Stock Items
+stockForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = stockIdInput.value;
+    const name = stockNameInput.value.trim();
+    const unit = stockUnitInput.value.trim();
+    const quantity = parseInt(stockQuantityInput.value);
+    const now = new Date().toLocaleDateString();
 
-                if (id) {
-                    const item = stock.find(i => i.id === id);
-                    database.ref('stock/' + id).update({ name, unit, quantity, stockNumber: item.stockNumber })
-                        .then(() => showPopupMessage('Stock item updated successfully!'))
-                        .catch(error => console.error("Error updating stock item:", error));
+    if (id) {
+        const item = stock.find(i => i.id === id);
+        database.ref('stock/' + id).update({
+            name,
+            unit,
+            oldQuantity: item.oldQuantity ?? quantity,
+            newQuantity: item.newQuantity ?? 0,
+            oldDate: item.oldDate || now,
+            newDate: item.newDate || '-'
+        })
+        .then(() => showPopupMessage('Stock item updated successfully!'))
+        .catch(error => console.error("Error updating stock item:", error));
+    } else {
+        const newId = database.ref().child('stock').push().key;
+        database.ref('stock/' + newId).set({
+            id: newId,
+            name,
+            unit,
+            oldQuantity: quantity,
+            newQuantity: 0,
+            oldDate: now,
+            newDate: '-'
+        })
+        .then(() => showPopupMessage('Stock item added successfully!'))
+        .catch(error => console.error("Error adding stock item:", error));
+    }
+    stockModal.style.display = 'none';
+});
+
+// 🟠 IN / OUT Logic
+stockTableBody.addEventListener('click', (e) => {
+    const id = e.target.dataset.id;
+    const item = stock.find(i => i.id === id);
+    const now = new Date().toLocaleDateString();
+
+    if (!id || !item) return;
+
+    if (e.target.classList.contains('btn-info')) {
+        stockModalTitle.textContent = 'Edit Stock Item';
+        stockIdInput.value = item.id;
+        stockNameInput.value = item.name;
+        stockUnitInput.value = item.unit;
+        stockQuantityInput.value = item.oldQuantity ?? 0;
+        stockModal.style.display = 'flex';
+    } 
+    else if (e.target.classList.contains('btn-danger')) {
+        if (confirm('Are you sure you want to delete this stock item?')) {
+            database.ref('stock/' + id).remove()
+                .then(() => showPopupMessage('Stock item deleted successfully!'))
+                .catch(error => console.error("Error deleting stock item:", error));
+        }
+    } 
+    else if (e.target.dataset.action === 'increment') { // IN button
+        const row = e.target.closest('tr');
+        const quantityInput = row.querySelector('.quantity-input');
+        const value = parseInt(quantityInput.value);
+
+        if (!isNaN(value) && value > 0) {
+            database.ref('stock/' + id).transaction(current => {
+                if (!current) return null;
+                const updated = { ...current };
+                updated.newQuantity = (current.newQuantity || 0) + value;
+                updated.newDate = now;
+                return updated;
+            })
+            .then(() => showPopupMessage(`Added ${value} unit(s) to NewQuantity of ${item.name}.`))
+            .catch(error => console.error("Error incrementing stock:", error));
+        } else {
+            showPopupMessage('Please enter a valid number greater than 0.');
+        }
+    } 
+    else if (e.target.dataset.action === 'decrement') { // OUT button
+        const row = e.target.closest('tr');
+        const quantityInput = row.querySelector('.quantity-input');
+        const value = parseInt(quantityInput.value);
+
+        if (!isNaN(value) && value > 0) {
+            database.ref('stock/' + id).transaction(current => {
+                if (!current) return null;
+                const updated = { ...current };
+                let oldQ = current.oldQuantity || 0;
+                let newQ = current.newQuantity || 0;
+
+                oldQ -= value;
+
+                if (oldQ < 0) {
+                    const deficit = Math.abs(oldQ);
+                    if (newQ > 0) {
+                        updated.oldQuantity = (newQ - deficit) >= 0 ? (newQ - deficit) : 0;
+                        updated.newQuantity = 0;
+                        updated.oldDate = now;
+                        updated.newDate = now;
+                        showPopupMessage(`Transferred new quantity to old quantity for ${item.name}.`);
+                    } else {
+                        updated.oldQuantity = 0;
+                        showPopupMessage(`Not enough stock available for ${item.name}.`);
+                    }
                 } else {
-                    const newId = database.ref().child('stock').push().key;
-                    const stockNumber = generateStockNumber();
-                    database.ref('stock/' + newId).set({ id: newId, stockNumber: stockNumber, name, unit, quantity })
-                        .then(() => showPopupMessage('Stock item added successfully!'))
-                        .catch(error => console.error("Error adding stock item:", error));
+                    updated.oldQuantity = oldQ;
+                    updated.oldDate = now;
                 }
-                stockModal.style.display = 'none';
-            });
 
-            stockTableBody.addEventListener('click', (e) => {
-                const id = e.target.dataset.id;
-                const item = stock.find(i => i.id === id);
+                return updated;
+            })
+            .then(() => showPopupMessage(`Used ${value} unit(s) of ${item.name}.`))
+            .catch(error => console.error("Error decrementing stock:", error));
+        } else {
+            showPopupMessage('Please enter a valid number greater than 0.');
+        }
+    }
+});
 
-                if (e.target.classList.contains('btn-info')) { // Edit button
-                    if (item) {
-                        stockModalTitle.textContent = 'Edit Stock Item';
-                        stockIdInput.value = item.id;
-                        stockNameInput.value = item.name;
-                        stockUnitInput.value = item.unit;
-                        stockQuantityInput.value = item.quantity;
-                        stockModal.style.display = 'flex';
-                    }
-                } else if (e.target.classList.contains('btn-danger')) { // Delete button
-                    if (confirm('Are you sure you want to delete this stock item?')) {
-                        database.ref('stock/' + id).remove()
-                            .then(() => showPopupMessage('Stock item deleted successfully!'))
-                            .catch(error => console.error("Error deleting stock item:", error));
-                    }
-                } else if (e.target.dataset.action === 'increment') { // IN button
-                    const row = e.target.closest('tr');
-                    const quantityInput = row.querySelector('.quantity-input');
-                    const value = parseInt(quantityInput.value);
+// 🧭 Modal controls
+document.getElementById('addStockBtn').addEventListener('click', () => {
+    stockModalTitle.textContent = 'Add Stock Item';
+    stockForm.reset();
+    stockIdInput.value = '';
+    stockModal.style.display = 'flex';
+});
+stockModal.querySelector('.close-btn').addEventListener('click', () => stockModal.style.display = 'none');
+stockModal.querySelector('.cancel-btn').addEventListener('click', () => stockModal.style.display = 'none');
 
-                    if (item && !isNaN(value) && value > 0) {
-                        database.ref('stock/' + id + '/quantity').transaction(currentQuantity => {
-                            return (currentQuantity || 0) + value;
-                        })
-                        .then(() => showPopupMessage(`Added ${value} unit(s) to ${item.name}.`))
-                        .catch(error => console.error("Error updating stock quantity:", error));
-                    } else {
-                        showPopupMessage('Please enter a valid number greater than 0.');
-                    }
-                } else if (e.target.dataset.action === 'decrement') { // OUT button
-                    const row = e.target.closest('tr');
-                    const quantityInput = row.querySelector('.quantity-input');
-                    const value = parseInt(quantityInput.value);
+// ✅ Select all checkboxes
+selectAllStockCheckbox.addEventListener('change', (e) => {
+    const isChecked = e.target.checked;
+    document.querySelectorAll('.stock-checkbox').forEach(cb => cb.checked = isChecked);
+});
 
-                    if (item && !isNaN(value) && value > 0) {
-                        database.ref('stock/' + id + '/quantity').transaction(currentQuantity => {
-                            if ((currentQuantity || 0) >= value) {
-                                return currentQuantity - value;
-                            } else {
-                                showPopupMessage('Cannot decrement stock below zero.');
-                                return; // Abort the transaction
-                            }
-                        })
-                        .then(() => showPopupMessage(`Used ${value} unit(s) of ${item.name}.`))
-                        .catch(error => console.error("Error updating stock quantity:", error));
-                    } else {
-                        showPopupMessage('Please enter a valid number greater than 0.');
-                    }
-                }
-            });
+// 🗑 Delete selected
+document.getElementById('deleteSelectedStockBtn').addEventListener('click', () => {
+    const selectedIds = Array.from(document.querySelectorAll('.stock-checkbox:checked')).map(cb => cb.dataset.id);
+    if (selectedIds.length === 0) return showPopupMessage('No stock items selected.');
+    if (confirm(`Delete ${selectedIds.length} selected item(s)?`)) {
+        const updates = {};
+        selectedIds.forEach(id => updates['stock/' + id] = null);
+        database.ref().update(updates)
+            .then(() => showPopupMessage(`${selectedIds.length} item(s) deleted successfully!`))
+            .catch(error => console.error("Error deleting items:", error));
+    }
+});
 
-            document.getElementById('addStockBtn').addEventListener('click', () => {
-                stockModalTitle.textContent = 'Add Stock Item';
-                stockForm.reset();
-                stockIdInput.value = '';
-                stockModal.style.display = 'flex';
-            });
+// ⚠️ Clear all
+document.getElementById('clearAllStockBtn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear ALL stock data?')) {
+        database.ref('stock').remove()
+            .then(() => showPopupMessage('All stock data cleared successfully!'))
+            .catch(error => console.error("Error clearing stock data:", error));
+    }
+});
 
-            stockModal.querySelector('.close-btn').addEventListener('click', () => stockModal.style.display = 'none');
-            stockModal.querySelector('.cancel-btn').addEventListener('click', () => stockModal.style.display = 'none');
+// 📥 CSV Import
+document.getElementById('importStockCsvBtn').addEventListener('click', () => {
+    document.getElementById('importStockCsvInput').click();
+});
 
-            selectAllStockCheckbox.addEventListener('change', (e) => {
-                const isChecked = e.target.checked;
-                document.querySelectorAll('.stock-checkbox').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-            });
+document.getElementById('importStockCsvInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const text = event.target.result;
+        const lines = text.split('\n').filter(l => l.trim() !== '');
+        let updates = {};
+        const now = new Date().toLocaleDateString();
+        lines.slice(1).forEach(line => {
+            const [id, name, unit, oldQuantity, newQuantity] = line.split(',');
+            if (name && unit) {
+                const newId = database.ref().child('stock').push().key;
+                updates['stock/' + newId] = {
+                    id: newId,
+                    name: name.trim(),
+                    unit: unit.trim(),
+                    oldQuantity: parseInt(oldQuantity) || 0,
+                    newQuantity: parseInt(newQuantity) || 0,
+                    oldDate: now,
+                    newDate: now
+                };
+            }
+        });
+        if (Object.keys(updates).length > 0) {
+            database.ref().update(updates)
+                .then(() => showPopupMessage('Stock imported successfully!'))
+                .catch(error => console.error("Error importing stock:", error));
+        }
+    };
+    reader.readAsText(file);
+});
 
-            document.getElementById('deleteSelectedStockBtn').addEventListener('click', () => {
-                const selectedIds = Array.from(document.querySelectorAll('.stock-checkbox:checked')).map(cb => cb.dataset.id);
-                if (selectedIds.length === 0) {
-                    showPopupMessage('No stock items selected for deletion.');
-                    return;
-                }
-                if (confirm(`Are you sure you want to delete ${selectedIds.length} selected item(s)?`)) {
-                    const updates = {};
-                    selectedIds.forEach(id => {
-                        updates['stock/' + id] = null;
-                    });
-                    database.ref().update(updates)
-                        .then(() => showPopupMessage(`${selectedIds.length} item(s) deleted successfully!`))
-                        .catch(error => console.error("Error deleting selected stock items:", error));
-                }
-            });
+// 📤 CSV Export
+document.getElementById('exportStockCsvBtn').addEventListener('click', () => {
+    const csvHeader = ['ID', 'Item Name', 'Unit', 'OldQuantity', 'NewQuantity'];
+    const csvData = stock.map((i, index) => [index + 1, i.name, i.unit, i.oldQuantity ?? 0, i.newQuantity ?? 0]);
+    const csvContent = "data:text/csv;charset=utf-8," +
+        csvHeader.join(',') + '\n' +
+        csvData.map(row => row.join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'stock.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showPopupMessage('Stock exported to CSV!');
+});
 
-            document.getElementById('clearAllStockBtn').addEventListener('click', () => {
-                if (confirm('Are you sure you want to clear ALL stock data? This action cannot be undone.')) {
-                    database.ref('stock').remove()
-                        .then(() => showPopupMessage('All stock data cleared successfully!'))
-                        .catch(error => console.error("Error clearing stock data:", error));
-                }
-            });
-            
-            // NEW: Stock CSV Import/Export
-            document.getElementById('importStockCsvBtn').addEventListener('click', () => {
-                document.getElementById('importStockCsvInput').click();
-            });
-
-            document.getElementById('importStockCsvInput').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const text = event.target.result;
-                        const lines = text.split('\n').filter(line => line.trim() !== '');
-                        let updates = {};
-                        lines.slice(1).forEach(line => { // Skip header row
-                            const [id, name, unit, quantity] = line.split(',');
-                            if (name && unit && quantity) {
-                                const newId = database.ref().child('stock').push().key;
-                                updates['stock/' + newId] = { id: newId, name: name.trim(), unit: unit.trim(), quantity: parseInt(quantity) };
-                            }
-                        });
-                        if (Object.keys(updates).length > 0) {
-                            database.ref().update(updates)
-                                .then(() => showPopupMessage('Stock imported successfully!'))
-                                .catch(error => console.error("Error importing stock:", error));
-                        }
-                    };
-                    reader.readAsText(file);
-                }
-            });
-
-            document.getElementById('exportStockCsvBtn').addEventListener('click', () => {
-                const csvHeader = ['ID', 'Item Name', 'Unit', 'Quantity'];
-                const csvData = stock.map(i => [i.id, i.name, i.unit, i.quantity]);
-                const csvContent = "data:text/csv;charset=utf-8," +
-                                   csvHeader.join(',') + '\n' +
-                                   csvData.map(row => row.join(',')).join('\n');
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement('a');
-                link.setAttribute('href', encodedUri);
-                link.setAttribute('download', 'stock.csv');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showPopupMessage('Stock exported to CSV!');
-            });
             
             // New Employee Management
 const employeeModal = document.getElementById('employee-modal');
