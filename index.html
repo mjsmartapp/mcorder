@@ -837,6 +837,14 @@ tbody tr:hover {
                 <p style="margin-top: 10px; font-weight: 600;">Remaining: ₹<span id="split-remaining">0.00</span></p>
             </div>
 
+            
+            <!-- 🔹 UPI QR Section (Visible for All Payment Modes) -->
+            <div id="upi-section" style="display:none; text-align:center; margin-top:15px;">
+                <h4>Scan to Pay</h4>
+                <img id="upi-qr-preview" src="" alt="UPI QR" style="width:150px; height:150px; margin-top:10px;">
+                <p id="upi-id-text" style="margin-top:5px; font-weight:600; font-size:0.9rem;"></p>
+            </div>
+
             <div class="modal-actions">
                 <button type="button" class="btn btn-success" id="finalise-payment-btn" disabled>Finalise Payment</button>
             </div>
@@ -1394,6 +1402,31 @@ tbody tr:hover {
                 invoiceModal.style.display = 'flex';
             };
 
+            
+            const showUpiQrPreview = async (amount = 0) => {
+    try {
+        const upiSnap = await firebase.database().ref('admins/MCADMIN001/upi').once('value');
+        const upiId = upiSnap.val();
+        const upiSection = document.getElementById('upi-section');
+        const qrImg = document.getElementById('upi-qr-preview');
+        const upiText = document.getElementById('upi-id-text');
+
+        if (upiId) {
+            if (!amount || isNaN(amount)) amount = 0;
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Mapples Cafe&am=${amount.toFixed(2)}&cu=INR`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+            qrImg.src = qrUrl;
+            qrImg.alt = `QR for ${upiId}`;
+            upiText.textContent = `Pay via UPI: ${upiId}`;
+            upiSection.style.display = 'block';
+        } else {
+            upiSection.style.display = 'none';
+        }
+    } catch (err) {
+        console.error("UPI preview error:", err);
+    }
+};
+
             const updateSplitAmounts = () => {
                 const cashInput = parseFloat(cashSplitAmountInput.value);
                 const cashAmount = isNaN(cashInput) ? 0 : cashInput;
@@ -1418,6 +1451,7 @@ tbody tr:hover {
                     e.target.classList.add('active');
 
                     selectedPaymentMethod = e.target.dataset.method;
+                    showUpiQrPreview(totalOrderAmount);
                     splitPaymentSection.style.display = 'none';
 
                     if (selectedPaymentMethod === 'Split') {
@@ -1589,7 +1623,15 @@ const printKitchenInvoice = (kitchenInvoice) => {
 
 
 
-            const printInvoice = (invoiceData) => {
+            const printInvoice = async (invoiceData) => {
+    let upiId = '';
+    try {
+        const upiSnap = await firebase.database().ref('admins/MCADMIN001/upi').once('value');
+        upiId = upiSnap.val() || '';
+    } catch (e) {
+        console.warn('Failed to load admin UPI:', e);
+    }
+
     const receiptText = generateReceiptText(invoiceData);
 
     // Create or get hidden print area
@@ -1601,7 +1643,16 @@ const printKitchenInvoice = (kitchenInvoice) => {
     }
 
     // Insert aligned receipt
-    printArea.innerHTML = `<pre>${receiptText}</pre>`;
+    let qrHTML = '';
+    if (upiId) {
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Mapples Cafe&am=${invoiceData.total.toFixed(2)}&cu=INR`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+        qrHTML = `<div style='text-align:center; margin-top:10px;'>
+            <img src='${qrUrl}' alt='UPI QR' style='width:120px; height:120px;'>
+            <p style='font-size:12px;'>Pay via UPI: <b>${upiId}</b></p>
+        </div>`;
+    }
+    printArea.innerHTML = `<pre>${receiptText}</pre>${qrHTML}`;
 
     // Print
     window.print();
