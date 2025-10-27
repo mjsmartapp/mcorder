@@ -970,9 +970,13 @@
         </div>
 
 
-	<div id="salary-section" class="content-section">
+	<!-- ========================================================= -->
+<!-- 💼 Salary Management Section -->
+<!-- ========================================================= -->
+<div id="salary-section" class="content-section">
+  <!-- Header -->
   <div class="section-header">
-    <h2>Salary</h2>
+    <h2>Salary Management</h2>
     <div class="action-buttons">
       <select id="salary-emp-select">
         <option value="">All Employees</option>
@@ -984,6 +988,7 @@
     </div>
   </div>
 
+  <!-- Salary Table -->
   <div class="table-container">
     <table id="salary-table">
       <thead>
@@ -999,33 +1004,42 @@
           <th>Action</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+        <!-- Filled dynamically by JavaScript -->
+      </tbody>
     </table>
   </div>
 </div>
 
+<!-- ========================================================= -->
+<!-- 💰 Salary Details Modal -->
+<!-- ========================================================= -->
 <div id="salary-details-modal" class="modal" style="display:none;">
-  <div class="modal-content" style="max-width:600px;">
-    <span class="close-btn" onclick="salaryDetailsModal.style.display='none'">&times;</span>
-    <h3 id="salary-details-title">Employee Attendance</h3>
+  <div class="modal-content" style="max-width:900px;">
+    <span class="close-btn" id="salary-details-close">&times;</span>
+    <h3 id="salary-details-title">Employee Attendance Details</h3>
+
     <div class="table-container">
-      <table style="width:100%; border-collapse:collapse;">
+      <table id="salary-details-table">
         <thead>
           <tr>
             <th>Date</th>
             <th>Emp ID</th>
             <th>Emp Name</th>
             <th>IN Time</th>
-            <th>Out Time</th>
+            <th>OUT Time</th>
             <th>Total Duration</th>
             <th>Daily Salary (₹)</th>
           </tr>
         </thead>
-        <tbody id="salary-details-body"></tbody>
+        <tbody id="salary-details-body">
+          <!-- Dynamic rows inserted by JS -->
+        </tbody>
       </table>
     </div>
   </div>
 </div>
+
 
 
         
@@ -1069,16 +1083,16 @@
             <div class="table-container">
                 <table id="attendance-table">
                     <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Emp ID</th>
-                            <th>Emp Name</th>
-                            <th>IN Time</th>
-                            <th>Out Time</th>
-                            <th>Total Duration(HH:MM:SS)</th>
-			    <th>Daily Salary (₹)</th>
-                        </tr>
-                    </thead>
+  <tr>
+      <th>Date</th>
+      <th>Emp ID</th>
+      <th>Emp Name</th>
+      <th>IN Time</th>
+      <th>Out Time</th>
+      <th>Total Duration (HH:MM:SS)</th>
+      <th>Daily Salary (₹)</th>
+      </tr>
+</thead>
                     <tbody>
                     </tbody>
                 </table>
@@ -1180,35 +1194,45 @@
 
 
     <div id="employee-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3 id="employee-modal-title">Add Employee</h3>
-            <form id="employee-form">
-                <input type="hidden" id="employee-db-id">
-                <label for="employee-name">Name:</label>
-                <input type="text" id="employee-name" required>
-                <label for="employee-phone">Phone No:</label>
-                <input type="tel" id="employee-phone" required>
-                <label for="employee-address">Address:</label>
-                <input type="text" id="employee-address" required>
-                <label for="employee-work-type">Work Type:</label>
-                <select id="employee-work-type" required>
-                    <option value="Part time">Part time</option>
-                    <option value="Full time">Full time</option>
-                </select>
-		<label for="employee-salary">Per Hour Salary (₹):</label>
-		<input type="number" id="employee-salary" step="0.01" required>
-                <label for="employee-email">Email:</label>
-                <input type="email" id="employee-email" required>
-                <label for="employee-dob">Date of Birth:</label>
-                <input type="date" id="employee-dob">
-                <div class="modal-actions">
-                    <button type="button" class="btn cancel-btn" id="employee-cancel-btn">Cancel</button>
-                    <button type="submit" class="btn save-btn">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h3 id="employee-modal-title">Add Employee</h3>
+    <form id="employee-form">
+      <input type="hidden" id="employee-db-id">
+
+      <label for="employee-name">Name:</label>
+      <input type="text" id="employee-name" required>
+
+      <label for="employee-phone">Phone No:</label>
+      <input type="tel" id="employee-phone" required>
+
+      <label for="employee-address">Address:</label>
+      <input type="text" id="employee-address" required>
+
+      <label for="employee-work-type">Work Type:</label>
+      <select id="employee-work-type" required>
+        <option value="">Select Work Type</option>
+        <option value="Full Time">Full Time</option>
+        <option value="Part Time">Part Time</option>
+      </select>
+
+      <!-- ✅ Dynamic salary label -->
+      <label for="employee-salary" id="salary-label">Salary (Per Hour)</label>
+      <input type="number" id="employee-salary" step="0.01" placeholder="Enter per hour salary" required>
+
+      <label for="employee-email">Email:</label>
+      <input type="email" id="employee-email" required>
+
+      <label for="employee-dob">Date of Birth:</label>
+      <input type="date" id="employee-dob" required>
+
+      <div class="modal-actions">
+        <button type="button" class="btn cancel-btn" id="employee-cancel-btn">Cancel</button>
+        <button type="submit" class="btn save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1420,7 +1444,11 @@ navLinks.forEach(link => {
 });
 
 
-// === Salary View Logic ===
+// ============================================================
+// === SALARY MANAGEMENT VIEW LOGIC (Fixed & Enhanced)
+// ============================================================
+
+// === DOM ELEMENTS ===
 const salaryTableBody = document.querySelector('#salary-table tbody');
 const salaryFilterBtn = document.getElementById('salary-filter-btn');
 const salaryEmpSelect = document.getElementById('salary-emp-select');
@@ -1428,276 +1456,343 @@ const salaryMonthSelect = document.getElementById('salary-month-select');
 const salaryDetailsModal = document.getElementById('salary-details-modal');
 const salaryDetailsBody = document.getElementById('salary-details-body');
 const salaryDetailsTitle = document.getElementById('salary-details-title');
+const salaryDetailsClose = document.getElementById('salary-details-close'); // ✅ Close button
 
-// Salaries from Firebase
-let salaries = {};
+// === GLOBAL VARIABLES ===
+let salaries = {}; // Loaded from Firebase
 
-// Helper: get YYYY-MM from a date string like "2025-09-28"
+// === HELPER: Get YYYY-MM from date string ===
 const getMonthKey = (dateStr) => (dateStr || '').slice(0, 7);
 
-// Populate filters (employees + months)
+// ============================================================
+// === POPULATE FILTERS (Employees + Months)
+// ============================================================
 const populateSalaryFilters = () => {
-    salaryEmpSelect.innerHTML = '<option value="">All Employees</option>';
-    employees.forEach(emp => {
-        const opt = document.createElement('option');
-        opt.value = emp.empId || '';
-        opt.textContent = `${emp.empId || ''} - ${emp.name || ''}`;
-        salaryEmpSelect.appendChild(opt);
-    });
+  salaryEmpSelect.innerHTML = '<option value="">All Employees</option>';
+  employees.forEach(emp => {
+    const opt = document.createElement('option');
+    opt.value = emp.empId || '';
+    opt.textContent = `${emp.empId || ''} - ${emp.name || ''}`;
+    salaryEmpSelect.appendChild(opt);
+  });
 
-    const monthsSet = new Set(
-        attendance.map(a => getMonthKey(a.date)).filter(Boolean)
-    );
-    const months = Array.from(monthsSet).sort().reverse();
-    salaryMonthSelect.innerHTML = '<option value="">All Months</option>';
-    months.forEach(month => {
-        const [year, mon] = month.split('-');
-        const monthName = new Date(year, (mon || '01') - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-        const opt = document.createElement('option');
-        opt.value = month;
-        opt.textContent = monthName;
-        salaryMonthSelect.appendChild(opt);
-    });
+  const monthsSet = new Set(attendance.map(a => getMonthKey(a.date)).filter(Boolean));
+  const months = Array.from(monthsSet).sort().reverse();
+
+  salaryMonthSelect.innerHTML = '<option value="">All Months</option>';
+  months.forEach(month => {
+    const [year, mon] = month.split('-');
+    const monthName = new Date(year, (mon || '01') - 1)
+      .toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const opt = document.createElement('option');
+    opt.value = month;
+    opt.textContent = monthName;
+    salaryMonthSelect.appendChild(opt);
+  });
 };
 
-// Render Salary Table
+// ============================================================
+// === RENDER SALARY TABLE
+// ============================================================
 const renderSalaryTable = () => {
-    salaryTableBody.innerHTML = '';
-    const selectedEmpId = salaryEmpSelect.value;
-    const selectedMonth = salaryMonthSelect.value;
+  salaryTableBody.innerHTML = '';
+  const selectedEmpId = salaryEmpSelect.value;
+  const selectedMonth = salaryMonthSelect.value;
 
-    employees.forEach(emp => {
-        if (selectedEmpId && emp.empId !== selectedEmpId) return;
+  employees.forEach(emp => {
+    if (selectedEmpId && emp.empId !== selectedEmpId) return;
 
-        // Filter attendance for employee + month
-        const empAttendance = attendance.filter(a => {
-            const matchesEmpId = (a.employeeEmpId && emp.empId && a.employeeEmpId === emp.empId);
-            const matchesUid = (a.employeeId && emp.id && a.employeeId === emp.id);
-            return (matchesEmpId || matchesUid) && (!selectedMonth || getMonthKey(a.date) === selectedMonth);
-        });
-
-        let totalHours = 0;
-        const presentDates = new Set();
-
-        empAttendance.forEach(a => {
-            if (a.inTime && a.outTime) {
-                const inT = new Date(a.inTime);
-                const outT = new Date(a.outTime);
-                const diffHrs = (outT - inT) / (1000 * 60 * 60);
-                if (!isNaN(diffHrs) && diffHrs > 0) {
-                    totalHours += diffHrs;
-                    presentDates.add(a.date);
-                }
-            }
-        });
-
-        const totalPresent = presentDates.size;
-        const totalAbsent = Math.max(0, empAttendance.length - totalPresent);
-
-        const hourlyRate = emp.salaryPerHour || 0;
-        const salaryAmount = totalHours * hourlyRate;
-
-        const monthKey = selectedMonth || getMonthKey(new Date().toISOString());
-        const monthText = selectedMonth
-            ? new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1] - 1)
-                .toLocaleString('en-US', { month: 'long', year: 'numeric' })
-            : 'All';
-
-        // Status from Firebase salaries, default "Unpaid"
-        const status = (salaries[emp.empId] && salaries[emp.empId][monthKey]?.status) || 'Unpaid';
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${emp.empId || ''}</td>
-            <td>${emp.name || ''}</td>
-            <td>${totalPresent}</td>
-            <td>${totalAbsent}</td>
-            <td>${totalHours.toFixed(2)} hrs</td>
-            <td>₹${salaryAmount.toFixed(2)}</td>
-            <td>${monthText}</td>
-            <td>${status}</td>
-            <td>
-                <button class="btn btn-info view-daily-btn" 
-                        data-empid="${emp.empId || ''}" 
-                        data-uid="${emp.id || ''}" 
-                        data-month="${monthKey}">View</button>
-                ${status === 'Unpaid' 
-                    ? `<button class="btn btn-success mark-paid-btn" 
-                               data-empid="${emp.empId || ''}" 
-                               data-month="${monthKey}"
-                               data-hours="${totalHours}"
-                               data-amount="${salaryAmount}">Mark as Paid</button>` 
-                    : ''
-                }
-                <button class="btn btn-warning print-invoice-btn" 
-                        data-empid="${emp.empId || ''}" 
-                        data-month="${monthKey}">Print Invoice</button>
-            </td>
-        `;
-        salaryTableBody.appendChild(row);
+    // Filter attendance for employee + month
+    const empAttendance = attendance.filter(a => {
+      const matchesEmpId = (a.employeeEmpId && emp.empId && a.employeeEmpId === emp.empId);
+      const matchesUid = (a.employeeId && emp.id && a.employeeId === emp.id);
+      return (matchesEmpId || matchesUid) && (!selectedMonth || getMonthKey(a.date) === selectedMonth);
     });
 
-    if (!salaryTableBody.hasChildNodes()) {
-        salaryTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found</td></tr>`;
+    let totalHours = 0;
+    const presentDates = new Set();
+
+    empAttendance.forEach(a => {
+      if (a.inTime && a.outTime) {
+        const inT = new Date(a.inTime);
+        const outT = new Date(a.outTime);
+        const diffHrs = (outT - inT) / (1000 * 60 * 60);
+        if (!isNaN(diffHrs) && diffHrs > 0) {
+          totalHours += diffHrs;
+          presentDates.add(a.date);
+        }
+      }
+    });
+
+    const totalPresent = presentDates.size;
+    const totalAbsent = Math.max(0, empAttendance.length - totalPresent);
+    const rate = emp.salaryPerHour || 0;
+    let salaryAmount = 0;
+
+    // ✅ Handle Full-Time vs Part-Time logic
+    if (emp.workType === 'Full Time') {
+      salaryAmount = totalPresent * rate; // Per-day salary
+    } else {
+      salaryAmount = totalHours * rate; // Per-hour salary
     }
+
+    const monthKey = selectedMonth || getMonthKey(new Date().toISOString());
+    const monthText = selectedMonth
+      ? new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1] - 1)
+        .toLocaleString('en-US', { month: 'long', year: 'numeric' })
+      : 'All';
+
+    const status = (salaries[emp.empId] && salaries[emp.empId][monthKey]?.status) || 'Unpaid';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${emp.empId || ''}</td>
+      <td>${emp.name || ''}</td>
+      <td>${totalPresent}</td>
+      <td>${totalAbsent}</td>
+      <td>${totalHours.toFixed(2)} hrs</td>
+      <td>₹${salaryAmount.toFixed(2)}</td>
+      <td>${monthText}</td>
+      <td>${status}</td>
+      <td>
+        <button class="btn btn-info view-daily-btn" 
+                data-empid="${emp.empId || ''}" 
+                data-uid="${emp.id || ''}" 
+                data-month="${monthKey}">View</button>
+        ${status === 'Unpaid'
+          ? `<button class="btn btn-success mark-paid-btn" 
+                     data-empid="${emp.empId || ''}" 
+                     data-month="${monthKey}"
+                     data-hours="${totalHours}"
+                     data-amount="${salaryAmount}"
+                     data-present="${totalPresent}">
+                Mark as Paid
+             </button>`
+          : ''
+        }
+        <button class="btn btn-warning print-invoice-btn" 
+                data-empid="${emp.empId || ''}" 
+                data-month="${monthKey}">Print Invoice</button>
+      </td>
+    `;
+    salaryTableBody.appendChild(row);
+  });
+
+  if (!salaryTableBody.hasChildNodes()) {
+    salaryTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found</td></tr>`;
+  }
 };
 
-// Event delegation for table buttons
+// ============================================================
+// === EVENT HANDLERS (View / Mark Paid / Print)
+// ============================================================
 salaryTableBody.addEventListener('click', (e) => {
-    const target = e.target;
+  const target = e.target;
 
-    // Mark as Paid
-    if (target.classList.contains('mark-paid-btn')) {
-        const empId = target.dataset.empid;
-        const month = target.dataset.month;
-        const totalHours = parseFloat(target.dataset.hours);
-        const salaryAmount = parseFloat(target.dataset.amount);
+  // === Mark Salary as Paid ===
+  if (target.classList.contains('mark-paid-btn')) {
+    const empId = target.dataset.empid;
+    const month = target.dataset.month;
+    const totalHours = parseFloat(target.dataset.hours);
+    const salaryAmount = parseFloat(target.dataset.amount);
+    const totalPresent = parseInt(target.dataset.present || 0);
+    const emp = employees.find(emp => emp.empId === empId);
 
-        const emp = employees.find(emp => emp.empId === empId);
-        if (emp) {
-            const salaryRecord = {
-                empId: emp.empId,
-                name: emp.name,
-                month: month,
-                totalHours: totalHours,
-                salaryAmount: salaryAmount,
-                status: 'Paid',
-                timestamp: new Date().toISOString()
-            };
+    if (emp) {
+      const salaryRecord = {
+        empId: emp.empId,
+        name: emp.name,
+        month: month,
+        workType: emp.workType,
+        totalHours: totalHours,
+        totalPresent: totalPresent,
+        salaryAmount: salaryAmount,
+        status: 'Paid',
+        timestamp: new Date().toISOString()
+      };
 
-            database.ref(`salaries/${emp.empId}/${month}`).set(salaryRecord)
-                .then(() => {
-                    showPopupMessage('Salary marked as Paid & saved!');
-                })
-                .catch(error => console.error("Error saving salary:", error));
+      database.ref(`salaries/${emp.empId}/${month}`).set(salaryRecord)
+        .then(() => showPopupMessage(`Salary marked as Paid & saved for ${emp.name}!`))
+        .catch(error => console.error("Error saving salary:", error));
+    }
+  }
+
+  // === Print Professional Payslip ===
+  if (target.classList.contains('print-invoice-btn')) {
+    const empId = target.dataset.empid;
+    const month = target.dataset.month;
+    const emp = employees.find(emp => emp.empId === empId);
+    if (!emp) return;
+
+    const salaryData = salaries[empId] && salaries[empId][month];
+    const totalHours = salaryData?.totalHours || 0;
+    const totalPresent = salaryData?.totalPresent || 0;
+    const salaryAmount = salaryData?.salaryAmount || 0;
+    const status = salaryData?.status || 'Unpaid';
+    const monthText = month
+      ? new Date(month.split('-')[0], month.split('-')[1] - 1)
+        .toLocaleString('en-US', { month: 'long', year: 'numeric' })
+      : 'All';
+
+    const rateType = emp.workType === 'Full Time' ? 'Per Day' : 'Per Hour';
+
+    const invoiceContent = `
+    <html>
+    <head>
+      <title>Salary Payslip - ${emp.name}</title>
+      <style>
+        body { font-family: 'Poppins', sans-serif; margin: 30px; }
+        .invoice-box {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            font-size: 14px;
+            line-height: 24px;
+            color: #333;
         }
+        .invoice-box h2 { text-align: center; color: #6a3d11; margin-bottom: 10px; }
+        .company { text-align: center; margin-bottom: 20px; }
+        .details, .summary {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .details th, .details td, .summary th, .summary td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .details th { background-color: #f2f2f2; text-align: left; }
+        .summary th { background-color: #6a3d11; color: #fff; text-align: left; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+        .sign-box { text-align: center; border-top: 1px solid #333; width: 200px; padding-top: 5px; }
+        .footer { text-align: center; font-size: 12px; margin-top: 20px; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-box">
+        <h2>Salary Payslip</h2>
+        <div class="company">
+          <h3>Mapple's Cafe</h3>
+          <p>123 Cafe Street, City<br>Email: info@mapplescafe.com</p>
+        </div>
+
+        <table class="details">
+          <tr><th>Employee ID</th><td>${emp.empId}</td></tr>
+          <tr><th>Name</th><td>${emp.name}</td></tr>
+          <tr><th>Work Type</th><td>${emp.workType}</td></tr>
+          <tr><th>Month</th><td>${monthText}</td></tr>
+          <tr><th>Rate (${rateType})</th><td>₹${(emp.salaryPerHour || 0).toFixed(2)}</td></tr>
+          <tr><th>${emp.workType === 'Full Time' ? 'Days Present' : 'Total Hours'}</th>
+              <td>${emp.workType === 'Full Time' ? totalPresent : totalHours.toFixed(2)} ${emp.workType === 'Full Time' ? 'days' : 'hrs'}</td></tr>
+        </table>
+
+        <table class="summary">
+          <tr><th>Total Salary</th><td><strong>₹${salaryAmount.toFixed(2)}</strong></td></tr>
+          <tr><th>Status</th><td>${status}</td></tr>
+          <tr><th>Generated On</th><td>${new Date().toLocaleString()}</td></tr>
+        </table>
+
+        <div class="signatures">
+          <div class="sign-box">Employee Signature</div>
+          <div class="sign-box">Authorized Signatory</div>
+        </div>
+
+        <div class="footer">
+          <p>This is a computer-generated payslip and does not require a physical signature.</p>
+          <p>Thank you for your service!</p>
+        </div>
+      </div>
+    </body>
+    </html>`;
+
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write(invoiceContent);
+    printWindow.document.close();
+    printWindow.print();
+  }
+
+  // === View Daily Attendance (Modal) ===
+  if (target.classList.contains('view-daily-btn')) {
+    const empId = target.dataset.empid;
+    const empName = employees.find(e => e.empId === empId)?.name || 'Employee';
+    const month = target.dataset.month;
+
+    const empAttendance = attendance.filter(a =>
+      a.employeeEmpId === empId && (!month || getMonthKey(a.date) === month)
+    );
+
+    salaryDetailsTitle.textContent = `Attendance Details - ${empName}`;
+    salaryDetailsBody.innerHTML = '';
+
+    if (empAttendance.length === 0) {
+      salaryDetailsBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No records found</td></tr>`;
+    } else {
+      empAttendance.forEach(a => {
+        const emp = employees.find(e => e.empId === a.employeeEmpId);
+        let dailySalary = 0;
+
+        if (emp) {
+          if (emp.workType === 'Full Time') {
+            dailySalary = emp.salaryPerHour || 0;
+          } else {
+            if (a.inTime && a.outTime) {
+              const inT = new Date(a.inTime);
+              const outT = new Date(a.outTime);
+              const diffHrs = (outT - inT) / (1000 * 60 * 60);
+              dailySalary = (emp.salaryPerHour || 0) * (diffHrs > 0 ? diffHrs : 0);
+            }
+          }
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${a.date || '-'}</td>
+          <td>${a.employeeEmpId || '-'}</td>
+          <td>${a.employeeName || '-'}</td>
+          <td>${a.inTime || '-'}</td>
+          <td>${a.outTime || '-'}</td>
+          <td>${a.totalDuration || '-'}</td>
+          <td>₹${dailySalary.toFixed(2)}</td>
+        `;
+        salaryDetailsBody.appendChild(tr);
+      });
     }
 
-    // Print Invoice (Professional Payslip)
-    if (target.classList.contains('print-invoice-btn')) {
-        const empId = target.dataset.empid;
-        const month = target.dataset.month;
-        const emp = employees.find(emp => emp.empId === empId);
-        if (!emp) return;
-
-        const salaryData = salaries[empId] && salaries[empId][month];
-        const totalHours = salaryData?.totalHours || 0;
-        const salaryAmount = salaryData?.salaryAmount || 0;
-        const status = salaryData?.status || 'Unpaid';
-        const monthText = month 
-            ? new Date(month.split('-')[0], month.split('-')[1] - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }) 
-            : 'All';
-
-        const invoiceContent = `
-        <html>
-        <head>
-          <title>Salary Invoice - ${emp.name}</title>
-          <style>
-            body { font-family: 'Poppins', sans-serif; margin: 30px; }
-            .invoice-box {
-                max-width: 700px;
-                margin: auto;
-                padding: 20px;
-                border: 1px solid #eee;
-                box-shadow: 0 0 10px rgba(0,0,0,0.15);
-                font-size: 14px;
-                line-height: 24px;
-                color: #333;
-            }
-            .invoice-box h2 { text-align: center; color: #6a3d11; margin-bottom: 10px; }
-            .company { text-align: center; margin-bottom: 20px; }
-            .details, .summary {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-            }
-            .details th, .details td, .summary th, .summary td {
-                border: 1px solid #ddd;
-                padding: 8px;
-            }
-            .details th {
-                background-color: #f2f2f2;
-                text-align: left;
-            }
-            .summary th {
-                background-color: #6a3d11;
-                color: #fff;
-                text-align: left;
-            }
-            .footer {
-                text-align: center;
-                font-size: 12px;
-                margin-top: 20px;
-                color: #666;
-            }
-            .signatures {
-                display: flex;
-                justify-content: space-between;
-                margin-top: 40px;
-            }
-            .sign-box {
-                text-align: center;
-                border-top: 1px solid #333;
-                width: 200px;
-                padding-top: 5px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="invoice-box">
-            <h2>Salary Payslip</h2>
-            <div class="company">
-              <h3>Mapple's Cafe</h3>
-              <p>123 Cafe Street, City<br>Email: info@mapplescafe.com</p>
-            </div>
-
-            <table class="details">
-              <tr><th>Employee ID</th><td>${emp.empId}</td></tr>
-              <tr><th>Name</th><td>${emp.name}</td></tr>
-              <tr><th>Month</th><td>${monthText}</td></tr>
-              <tr><th>Rate Per Hour</th><td>₹${(emp.salaryPerHour || 0).toFixed(2)}</td></tr>
-              <tr><th>Total Hours</th><td>${totalHours.toFixed(2)} hrs</td></tr>
-            </table>
-
-            <table class="summary">
-              <tr><th>Total Salary</th><td><strong>₹${salaryAmount.toFixed(2)}</strong></td></tr>
-              <tr><th>Status</th><td>${status}</td></tr>
-              <tr><th>Generated On</th><td>${new Date().toLocaleString()}</td></tr>
-            </table>
-
-            <div class="signatures">
-              <div class="sign-box">Employee Signature</div>
-              <div class="sign-box">Authorized Signatory</div>
-            </div>
-
-            <div class="footer">
-              <p>This is a computer-generated payslip and does not require physical signature.</p>
-              <p>Thank you for your service!</p>
-            </div>
-          </div>
-        </body>
-        </html>`;
-
-        const printWindow = window.open('', '', 'width=800,height=600');
-        printWindow.document.write(invoiceContent);
-        printWindow.document.close();
-        printWindow.print();
-    }
+    salaryDetailsModal.style.display = 'flex';
+  }
 });
 
-// Hook up filter button
+// ============================================================
+// === MODAL CLOSE FUNCTIONALITY ===
+if (salaryDetailsClose) {
+  salaryDetailsClose.addEventListener('click', () => {
+    salaryDetailsModal.style.display = 'none';
+  });
+}
+
+// Close modal on outside click
+window.addEventListener('click', (event) => {
+  if (event.target === salaryDetailsModal) {
+    salaryDetailsModal.style.display = 'none';
+  }
+});
+
+// ============================================================
+// === FILTER BUTTON & INITIALIZATION ===
 salaryFilterBtn.addEventListener('click', renderSalaryTable);
 
-// Called when user navigates to Salary
 const openSalarySection = () => {
-    populateSalaryFilters();
-    renderSalaryTable();
+  populateSalaryFilters();
+  renderSalaryTable();
 };
 
-// === Load salaries from Firebase ===
+// ============================================================
+// === REAL-TIME FIREBASE LISTENER ===
 database.ref('salaries').on('value', (snapshot) => {
-    salaries = snapshot.val() || {};
-    renderSalaryTable();
+  salaries = snapshot.val() || {};
+  renderSalaryTable();
 });
 
 	
@@ -2604,6 +2699,19 @@ const employeeEmailInput = document.getElementById('employee-email');
 const employeeDobInput = document.getElementById('employee-dob');
 const employeeDBIdInput = document.getElementById('employee-db-id');
 const employeeSalaryInput = document.getElementById('employee-salary'); // ✅ new salary field
+const salaryLabel = document.querySelector('label[for="employee-salary"]'); // ✅ new label reference
+
+// ✅ Dynamic Salary Label Update
+employeeWorkTypeInput.addEventListener('change', () => {
+    const selectedType = employeeWorkTypeInput.value;
+    if (selectedType === 'Full Time') {
+        salaryLabel.textContent = 'Salary (Per Day)';
+        employeeSalaryInput.placeholder = 'Enter per day salary';
+    } else {
+        salaryLabel.textContent = 'Salary (Per Hour)';
+        employeeSalaryInput.placeholder = 'Enter per hour salary';
+    }
+});
 
 const renderEmployeesTable = () => {
     employeesTableBody.innerHTML = '';
@@ -2616,7 +2724,10 @@ const renderEmployeesTable = () => {
             <td>${emp.phone}</td>
             <td>${emp.address}</td>
             <td>${emp.workType}</td>
-            <td>₹${emp.salaryPerHour ? emp.salaryPerHour.toFixed(2) : '0.00'}</td>
+            <td>
+                ₹${emp.salaryPerHour ? emp.salaryPerHour.toFixed(2) : '0.00'}
+                ${emp.workType === 'Full Time' ? '/day' : '/hr'}
+            </td>
             <td>${emp.email}</td>
             <td>
                 <button class="btn btn-info edit-employee-btn" data-id="${emp.id}">Edit</button>
@@ -2661,6 +2772,8 @@ document.getElementById('addEmployeeBtn').addEventListener('click', () => {
     employeeDBIdInput.value = '';
     employeeDobInput.style.display = 'block';
     employeeDobInput.required = true;
+    salaryLabel.textContent = 'Salary (Per Hour)'; // ✅ reset default
+    employeeSalaryInput.placeholder = 'Enter per hour salary';
     employeeModal.style.display = 'flex';
 });
 
@@ -2731,6 +2844,10 @@ employeesTableBody.addEventListener('click', async (e) => {
             employeeSalaryInput.value = employee.salaryPerHour || 0; // ✅ prefill salary
             employeeDobInput.style.display = 'none';
             employeeDobInput.required = false;
+
+            // ✅ trigger label change automatically
+            employeeWorkTypeInput.dispatchEvent(new Event('change'));
+
             employeeModal.style.display = 'flex';
         }
     } else if (button.classList.contains('delete-employee-btn')) {
@@ -2746,37 +2863,45 @@ employeesTableBody.addEventListener('click', async (e) => {
     }
 });
 
+
             
-            // === Attendance Logic ===
+            // ============================================================
+// === ATTENDANCE MANAGEMENT LOGIC (Updated & Enhanced)
+// ============================================================
+
+// === QR CODE HANDLING ===
 const qrCodeDiv = document.getElementById('qr-code');
 const generateQrBtn = document.getElementById('generateQrBtn');
-const deleteQrBtn = document.getElementById('deleteQrBtn'); // NEW
+const deleteQrBtn = document.getElementById('deleteQrBtn');
 let qrCodeInstance = null;
 
+// === Generate Unique ID for Attendance QR ===
 const generateUniqueId = () => {
     const date = new Date().toISOString().slice(0, 10);
     const randomPart = Math.random().toString(36).substring(2, 15);
     return `${date}-${randomPart}`;
 };
 
-// ✅ Restore QR on page load (instead of deleting)
+// === Restore last generated QR on page load ===
 window.addEventListener("load", () => {
     database.ref('qr_codes').limitToLast(1).once('value', (snapshot) => {
         if (snapshot.exists()) {
             const qrData = Object.values(snapshot.val())[0];
-            const attendanceId = qrData.attendanceId; // Extract attendanceId
+            const attendanceId = qrData.attendanceId;
             qrCodeDiv.innerHTML = '';
             qrCodeInstance = new QRCode(qrCodeDiv, {
-                text: attendanceId, // MODIFIED: Use attendanceId directly
+                text: attendanceId,
                 width: 100,
                 height: 100
             });
             console.log("Restored QR:", attendanceId);
+        } else {
+            qrCodeDiv.innerHTML = 'Click "Generate QR"';
         }
     });
 });
 
-// ✅ Generate new QR code
+// === Generate a new QR code ===
 generateQrBtn.addEventListener('click', () => {
     const uniqueId = generateUniqueId();
     const qrData = {
@@ -2786,7 +2911,7 @@ generateQrBtn.addEventListener('click', () => {
 
     qrCodeDiv.innerHTML = '';
     qrCodeInstance = new QRCode(qrCodeDiv, {
-        text: uniqueId, // MODIFIED: Use uniqueId (which is attendanceId) directly
+        text: uniqueId,
         width: 100,
         height: 100
     });
@@ -2794,111 +2919,126 @@ generateQrBtn.addEventListener('click', () => {
     database.ref('qr_codes/' + uniqueId).set({
         ...qrData,
         generatedBy: 'System'
-    }).then(() => {
-        showPopupMessage('QR Code generated successfully!');
-    }).catch(error => {
+    }).then(() => showPopupMessage('QR Code generated successfully!'))
+      .catch(error => {
         console.error("Error saving QR code data:", error);
         showPopupMessage('Error generating QR code.');
     });
 });
 
-// ✅ Delete QR manually
+// === Delete QR manually ===
 deleteQrBtn.addEventListener('click', () => {
     qrCodeDiv.innerHTML = '';
-    // Clear the QR code instance display if it exists
     if (qrCodeInstance) {
         qrCodeInstance.clear();
-        qrCodeDiv.innerHTML = 'Click "Generate QR"'; // Add placeholder text
+        qrCodeDiv.innerHTML = 'Click "Generate QR"';
     }
     database.ref('qr_codes').remove()
         .then(() => showPopupMessage('QR Code deleted!'))
         .catch(error => console.error("Error deleting QR codes:", error));
 });
 
+// ============================================================
+// === ATTENDANCE CHECK-IN / CHECK-OUT LOGIC ===
+const handleCheckInOrOut = (scannedData) => {
+    try {
+        const data = JSON.parse(scannedData);
+        const employeeId = data.employeeId;
+        const emp = employees.find(e => e.id === employeeId);
 
+        if (!emp) {
+            showPopupMessage('Employee not found!');
+            return;
+        }
 
-            // This is a placeholder for the scanning mechanism
-            // For a real-world app, you'd need a mobile scanner app
-            const handleCheckInOrOut = (scannedData) => {
-                try {
-                    const data = JSON.parse(scannedData);
-                    const employeeId = data.employeeId;
-                    const emp = employees.find(e => e.id === employeeId);
-                    if (!emp) {
-                        showPopupMessage('Employee not found!');
-                        return;
-                    }
+        const today = new Date().toISOString().slice(0, 10);
+        const attendanceRef = database.ref('attendance');
+        let existingEntry = attendance.find(entry => entry.date === today && entry.employeeId === employeeId);
 
-                    const today = new Date().toISOString().slice(0, 10);
-                    const attendanceRef = database.ref('attendance');
-                    let existingEntry = attendance.find(entry => entry.date === today && entry.employeeId === employeeId);
+        if (existingEntry) {
+            // === Check Out ===
+            if (existingEntry.outTime) {
+                showPopupMessage('Already checked out for today.');
+                return;
+            }
 
-                    if (existingEntry) {
-                        // Check Out
-                        if (existingEntry.outTime) {
-                            showPopupMessage('Already checked out for today.');
-                            return;
-                        }
-                        const outTime = new Date().toISOString();
-                        const inTime = new Date(existingEntry.inTime);
-                        const totalHours = ((new Date(outTime) - inTime) / (1000 * 60 * 60)).toFixed(2);
-                        database.ref('attendance/' + existingEntry.id).update({ outTime, totalHours })
-                            .then(() => showPopupMessage(`${emp.name} checked OUT successfully!`));
-                    } else {
-                        // Check In
-                        const inTime = new Date().toISOString();
-                        const newAttendanceRef = attendanceRef.push();
-                        newAttendanceRef.set({
-                            id: newAttendanceRef.key,
-                            date: today,
-                            employeeId: employeeId,
-                            employeeName: emp.name,
-                            employeeEmpId: emp.empId,
-                            inTime,
-                            outTime: null,
-                            totalHours: 0
-                        }).then(() => showPopupMessage(`${emp.name} checked IN successfully!`));
-                    }
-                } catch (e) {
-                    console.error("Invalid QR code data:", e);
-                    showPopupMessage('Invalid QR code data.');
-                }
-            };
-            
-            const renderAttendanceTable = () => {
+            const outTime = new Date().toISOString();
+            const inTime = new Date(existingEntry.inTime);
+            const totalHours = ((new Date(outTime) - inTime) / (1000 * 60 * 60)).toFixed(2);
+
+            // Update in Firebase
+            database.ref('attendance/' + existingEntry.id).update({
+                outTime,
+                totalHours
+            }).then(() => showPopupMessage(`${emp.name} checked OUT successfully!`));
+        } else {
+            // === Check In ===
+            const inTime = new Date().toISOString();
+            const newAttendanceRef = attendanceRef.push();
+
+            newAttendanceRef.set({
+                id: newAttendanceRef.key,
+                date: today,
+                employeeId: employeeId,
+                employeeName: emp.name,
+                employeeEmpId: emp.empId,
+                inTime,
+                outTime: null,
+                totalHours: 0
+            }).then(() => showPopupMessage(`${emp.name} checked IN successfully!`));
+        }
+    } catch (e) {
+        console.error("Invalid QR code data:", e);
+        showPopupMessage('Invalid QR code data.');
+    }
+};
+
+// ============================================================
+// === RENDER ATTENDANCE TABLE ===
+const renderAttendanceTable = () => {
     attendanceTableBody.innerHTML = '';
 
-    // Sort by date (latest first)
+    // Sort attendance by latest date
     attendance.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(entry => {
-        // Find employee info
         const emp = employees.find(e =>
             (e.empId && entry.employeeEmpId && e.empId === entry.employeeEmpId) ||
             (e.id && entry.employeeId && e.id === entry.employeeId)
         );
 
-        // IN/OUT times
+        // Calculate In/Out times
         const inTimeObj = entry.inTime ? new Date(entry.inTime) : null;
         const outTimeObj = entry.outTime ? new Date(entry.outTime) : null;
-        const inTime = inTimeObj ? inTimeObj.toLocaleTimeString() : 'N/A';
-        const outTime = outTimeObj ? outTimeObj.toLocaleTimeString() : 'N/A';
+        const inTime = inTimeObj ? inTimeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const outTime = outTimeObj ? outTimeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
-        // Duration (HH:MM:SS) + hours worked
+        // Calculate Duration (HH:MM:SS)
         let durationStr = entry.totalDuration || '0';
         let hoursWorked = 0;
         if (inTimeObj && outTimeObj) {
             const diffMs = outTimeObj - inTimeObj;
-            hoursWorked = diffMs / (1000 * 60 * 60); // ms → hrs
+            hoursWorked = diffMs / (1000 * 60 * 60);
             const h = Math.floor(hoursWorked);
             const m = Math.floor((hoursWorked - h) * 60);
             const s = Math.floor((diffMs / 1000) % 60);
             durationStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        // Daily Salary
-        const hourlyRate = emp ? (emp.salaryPerHour || 0) : 0;
-        const dailySalary = hoursWorked * hourlyRate;
+        // ====================================================
+        // === DAILY SALARY CALCULATION (Enhanced & Synced) ===
+        // ====================================================
+        let dailySalary = 0;
+        if (emp) {
+            const rate = emp.salaryPerHour || 0;
+            if (emp.workType === 'Full Time') {
+                // Full Time = Fixed daily pay if present
+                if (inTimeObj && outTimeObj) dailySalary = rate;
+            } else {
+                // Part Time = Hourly × hours worked
+                dailySalary = rate * hoursWorked;
+            }
+        }
 
-        // Create row
+        // Create table row
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${entry.date}</td>
@@ -2916,6 +3056,17 @@ deleteQrBtn.addEventListener('click', () => {
         attendanceTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No attendance records found</td></tr>`;
     }
 };
+
+// ============================================================
+// === LISTEN TO REALTIME CHANGES FROM FIREBASE ===
+database.ref('attendance').on('value', (snapshot) => {
+    attendance = [];
+    snapshot.forEach(child => {
+        attendance.push(child.val());
+    });
+    renderAttendanceTable();
+});
+
 
 
 	   
