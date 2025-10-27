@@ -1405,7 +1405,7 @@ tbody tr:hover {
             
             const showUpiQrPreview = async (amount = 0) => {
     try {
-        const upiSnap = await firebase.database().ref('admins/MCADMIN001/upi').once('value');
+        const upiSnap = await firebase.database().ref('admins/MCADMIN003/upi').once('value');
         const upiId = upiSnap.val();
         const upiSection = document.getElementById('upi-section');
         const qrImg = document.getElementById('upi-qr-preview');
@@ -1626,7 +1626,7 @@ const printKitchenInvoice = (kitchenInvoice) => {
             const printInvoice = async (invoiceData) => {
     let upiId = '';
     try {
-        const upiSnap = await firebase.database().ref('admins/MCADMIN001/upi').once('value');
+        const upiSnap = await firebase.database().ref('admins/MCADMIN003/upi').once('value');
         upiId = upiSnap.val() || '';
     } catch (e) {
         console.warn('Failed to load admin UPI:', e);
